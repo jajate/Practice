@@ -218,26 +218,26 @@ button{ font: inherit; }
   display: grid;
   place-items: center;
   /* Default: transparan supaya tiles masih kelihatan */
-  background: rgba(0,0,0,0.20);
+  background: rgba(0,0,0,0.28);
   backdrop-filter: blur(2px);
 }
 
 /* B) overlay score tone (merah / hijau / orange) */
 .boardMessage[data-state="finished"][data-tone="red"]{
   background:
-    radial-gradient(520px 320px at 50% 50%, rgba(255, 70, 90, 0.38), rgba(0,0,0,0.12) 62%),
-    rgba(0,0,0,0.16);
+    radial-gradient(520px 320px at 50% 50%, rgba(255, 70, 90, 0.50), rgba(0,0,0,0.16) 62%),
+    rgba(0,0,0,0.22);
 }
 
 .boardMessage[data-state="finished"][data-tone="green"]{
   background:
-    radial-gradient(520px 320px at 50% 50%, rgba(60, 255, 160, 0.26), rgba(0,0,0,0.12) 62%),
+    radial-gradient(520px 320px at 50% 50%, rgba(60, 255, 160, 0.36), rgba(0,0,0,0.12) 62%),
     rgba(0,0,0,0.16);
 }
 
 .boardMessage[data-state="finished"][data-tone="orange"]{
   background:
-    radial-gradient(520px 320px at 50% 50%, rgba(255, 178, 74, 0.32), rgba(0,0,0,0.12) 62%),
+    radial-gradient(520px 320px at 50% 50%, rgba(255, 178, 74, 0.44), rgba(0,0,0,0.12) 62%),
     rgba(0,0,0,0.16);
 }
 
@@ -266,6 +266,12 @@ button{ font: inherit; }
   font-size: 18px;
   font-weight: 1000;
   text-shadow: 0 3px 18px rgba(0,0,0,0.55);
+}
+
+/* Score dibuat lebih besar saat finished */
+.boardMessage[data-state="finished"] .boardMessageSub{
+  font-size: clamp(26px, 3.4vw, 44px);
+  letter-spacing: 0.2px;
 }
 
 .boardMessageActions{
