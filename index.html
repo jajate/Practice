@@ -2,279 +2,105 @@
 <html lang="id">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Typing Practice (KPM)</title>
-  <style>
-    :root { color-scheme: dark; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      background: #000;
-      color: #fff;
-    }
-    .shell {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: clamp(12px, 3vw, 32px);
-    }
-    .card {
-      width: min(980px, 100%);
-      background: #0b0b0b;
-      border: 1px solid #2a2a2a;
-      border-radius: 18px;
-      padding: clamp(16px, 3vw, 28px);
-      box-shadow: 0 10px 30px rgba(0,0,0,.5);
-    }
-    h1 { margin: 0 0 12px; font-size: clamp(20px, 3vw, 28px); }
-    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
-    .stats { display: flex; gap: 16px; flex-wrap: wrap; }
-    .pill {
-      border: 1px solid #2a2a2a;
-      background: #111;
-      border-radius: 999px;
-      padding: 10px 14px;
-      font-weight: 700;
-      font-size: 14px;
-    }
-    .btn {
-      border: 1px solid #2a2a2a;
-      background: #141414;
-      color: #fff;
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-weight: 800;
-      cursor: pointer;
-    }
-    .btn:hover { background: #1b1b1b; }
-    :focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
-
-    .promptWrap { margin-top: 16px; }
-    .prompt {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding: 18px;
-      border-radius: 16px;
-      border: 1px solid #2a2a2a;
-      background: #070707;
-      min-height: 120px;
-      align-items: center;
-    }
-    .ch {
-      min-width: 64px;
-      min-height: 64px;
-      border-radius: 16px;
-      display: grid;
-      place-items: center;
-      font-size: clamp(22px, 3vw, 34px);
-      font-weight: 900;
-      border: 1px solid #2a2a2a;
-      background: #111;
-      user-select: none;
-    }
-    .ch.current { border-color: #fff; }
-    .ch.done { opacity: .45; }
-    .banner {
-      margin-top: 12px;
-      padding: 12px 14px;
-      border-radius: 14px;
-      border: 1px solid #3a1b1b;
-      background: #160707;
-      font-weight: 800;
-    }
-    .hint {
-      margin-top: 12px;
-      opacity: .85;
-      font-size: 14px;
-      line-height: 1.4;
-    }
-    .srOnly{
-      position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;
-      overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
-    }
-    .mobileBlock {
-      text-align: center;
-      padding: 26px;
-      border-radius: 18px;
-      border: 1px solid #2a2a2a;
-      background: #0b0b0b;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vykas Typing Practice (HTML)</title>
+  <meta name="description" content="Typing practice ala Lost Ark (Vykas mode) - HTML/CSS/JS" />
+  <link rel="stylesheet" href="./style.css" />
+  <script defer src="./app.js"></script>
 </head>
+
 <body>
-  <main class="shell" id="app"></main>
+  <a class="skip" href="#main">Skip to game</a>
 
-  <script>
-    (function () {
-      // --- Keyboard-only gate (opsional, sesuai request "mobile tidak perlu")
-      const isTouchLike = (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) || (navigator.maxTouchPoints > 0);
-      const app = document.getElementById("app");
-      if (isTouchLike) {
-        app.innerHTML = `
-          <div class="mobileBlock" role="alert">
-            <h1>Keyboard required</h1>
-            <p>Mode ini hanya untuk PC/laptop dengan keyboard.</p>
-          </div>`;
-        return;
-      }
+  <main id="main" class="shell" tabindex="-1">
+    <section class="card" aria-label="Vykas typing practice">
+      <header class="top">
+        <div class="brand">
+          <h1 class="title">Lost Ark Typing Practice</h1>
+          <p class="subtitle">
+            <span class="badge">Vykas mode</span>
+            <span class="dim">• Keyboard-only • Penalti 3 detik saat salah</span>
+          </p>
+        </div>
 
-      // --- Config
-      const PENALTY_FREEZE_MS = 3000;
+        <div class="controls" role="group" aria-label="Controls">
+          <button id="btnNew" class="btn" type="button">New</button>
+          <button id="btnReset" class="btn" type="button">Reset</button>
 
-      // Prompt (silakan ganti sesuai kebutuhan)
-      let target = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG";
-      let idx = 0;
+          <label class="toggle">
+            <input id="toggleEasy" type="checkbox" />
+            <span>Easy</span>
+          </label>
 
-      // State
-      let startAtMs = null;
-      let correctKeys = 0;
-      let penaltyMs = 0;
-      let penaltyUntilMs = 0;
+          <button id="btnMute" class="btn" type="button" aria-pressed="false">Mute</button>
+        </div>
+      </header>
 
-      // Mute persisted
-      let muted = localStorage.getItem("muted") === "1";
+      <div class="hud" aria-label="Status bar">
+        <div class="pill" aria-label="Timer">
+          <span class="pillKey">TIME</span>
+          <span id="timerText" class="pillVal">—</span>
+        </div>
 
-      // Simple beep sounds (tanpa file audio)
-      const ac = new (window.AudioContext || window.webkitAudioContext)();
-      function beep(freq, ms) {
-        if (muted) return;
-        try {
-          const o = ac.createOscillator();
-          const g = ac.createGain();
-          o.type = "square";
-          o.frequency.value = freq;
-          g.gain.value = 0.04;
-          o.connect(g); g.connect(ac.destination);
-          o.start();
-          setTimeout(() => { o.stop(); }, ms);
-        } catch {}
-      }
+        <div class="pill" aria-label="Keys per minute">
+          <span class="pillKey">KPM</span>
+          <span id="kpmText" class="pillVal">0</span>
+        </div>
 
-      function reset() {
-        idx = 0;
-        startAtMs = null;
-        correctKeys = 0;
-        penaltyMs = 0;
-        penaltyUntilMs = 0;
-        render();
-      }
+        <div class="pill" aria-label="Correct keys">
+          <span class="pillKey">OK</span>
+          <span id="okText" class="pillVal">0</span>
+        </div>
 
-      function applyPenalty() {
-        const now = Date.now();
-        penaltyUntilMs = now + PENALTY_FREEZE_MS;
-        penaltyMs += PENALTY_FREEZE_MS;
-        beep(160, 90);
-        render();
-      }
+        <div class="pill" aria-label="Penalty seconds">
+          <span class="pillKey">PEN</span>
+          <span id="penText" class="pillVal">0s</span>
+        </div>
 
-      function elapsedMs(now) {
-        if (!startAtMs) return 0;
-        return (now - startAtMs) + penaltyMs;
-      }
+        <div class="pill" aria-label="Round">
+          <span class="pillKey">ROUND</span>
+          <span id="roundText" class="pillVal">1</span>
+        </div>
+      </div>
 
-      function kpm(now) {
-        if (!startAtMs) return 0;
-        const minutes = Math.max(elapsedMs(now) / 60000, 1/60);
-        return Math.round(correctKeys / minutes);
-      }
+      <div class="game">
+        <div class="hint" id="hint">
+          Klik area game lalu tekan tombol keyboard untuk mulai.
+          <span class="dim">Backspace tidak dipakai; fokus ke ketik sesuai tiles.</span>
+        </div>
 
-      function penaltyLeftSec(now) {
-        return Math.max(0, Math.ceil((penaltyUntilMs - now) / 1000));
-      }
+        <div id="mobileBlock" class="mobileBlock" hidden role="alert">
+          <h2>Keyboard required</h2>
+          <p>Game ini dibuat untuk PC/laptop dengan keyboard. Mobile/touch tidak didukung.</p>
+        </div>
 
-      function render() {
-        const now = Date.now();
-        const left = penaltyLeftSec(now);
+        <div class="boardWrap" aria-label="Typing board">
+          <div id="board" class="board" role="group" aria-label="Target sequence"></div>
 
-        const chars = target.split("").map((c, i) => {
-          const cls = ["ch"];
-          if (i < idx) cls.push("done");
-          if (i === idx) cls.push("current");
-          const safe = (c === " ") ? "␣" : c;
-          return `<div class="${cls.join(" ")}" aria-hidden="true">${safe}</div>`;
-        }).join("");
-
-        app.innerHTML = `
-          <div class="card">
-            <div class="row">
-              <h1>Typing Practice (KPM)</h1>
-              <div class="row">
-                <button class="btn" id="btnReset">Reset</button>
-                <button class="btn" id="btnMute" aria-pressed="${muted}">${muted ? "Unmute" : "Mute"}</button>
+          <div id="overlay" class="overlay" hidden>
+            <div class="overlayCard" role="status" aria-live="assertive">
+              <div class="overlayTitle">Salah!</div>
+              <div class="overlayText">
+                Penalti <span id="penaltyCountdown">3</span>s
               </div>
-            </div>
-
-            <div class="row" style="margin-top:10px;">
-              <div class="stats" aria-label="Statistik">
-                <div class="pill">KPM: <span id="kpm">${kpm(now)}</span></div>
-                <div class="pill">Benar: <span id="ok">${correctKeys}</span></div>
-                <div class="pill">Penalty: <span id="pen">${Math.floor(penaltyMs/1000)}s</span></div>
-              </div>
-              <div class="pill" aria-label="Status input">${left > 0 ? "PENALTY " + left + "s" : "READY"}</div>
-            </div>
-
-            <div class="promptWrap">
-              <div class="prompt" role="group" aria-label="Teks latihan">
-                ${chars}
-              </div>
-              ${left > 0 ? `<div class="banner" role="status" aria-live="assertive">Salah! Penalti ${left}s</div>` : ""}
-              <div class="hint">
-                Ketik sesuai teks. Spasi = Spacebar. Input akan <b>freeze 3 detik</b> saat salah, lalu lanjut.
-              </div>
-              <div class="srOnly" aria-live="polite" aria-atomic="true">
-                ${"KPM " + kpm(now) + ". Benar " + correctKeys + ". Penalti " + (left > 0 ? left + " detik." : "tidak ada.")}
-              </div>
+              <div class="overlaySub dim">Input di-freeze, lalu lanjut.</div>
             </div>
           </div>
-        `;
+        </div>
 
-        document.getElementById("btnReset").onclick = reset;
-        document.getElementById("btnMute").onclick = () => {
-          muted = !muted;
-          localStorage.setItem("muted", muted ? "1" : "0");
-          render();
-        };
-      }
+        <div class="statusRow">
+          <div id="status" class="status" role="status" aria-live="polite"></div>
+          <div class="kbdTip dim">Tip: fokuskan halaman, lalu ketik cepat.</div>
+        </div>
 
-      // Key handler
-      window.addEventListener("keydown", (e) => {
-        const now = Date.now();
-        if (startAtMs === null) startAtMs = now;
+        <!-- Screen reader live region -->
+        <div id="srLive" class="srOnly" aria-live="polite" aria-atomic="true"></div>
+      </div>
 
-        // block all input during penalty
-        if (now < penaltyUntilMs) return;
-
-        // ignore modifier keys
-        if (e.key.length !== 1 && e.key !== "Backspace" && e.key !== "Enter" && e.key !== " ") return;
-
-        const expected = target[idx] ?? null;
-        if (expected === null) return;
-
-        // Map Space
-        const pressed = (e.key === " ") ? " " : e.key;
-
-        if (pressed === expected) {
-          correctKeys += 1;
-          idx += 1;
-          beep(520, 40);
-
-          if (idx >= target.length) {
-            // selesai → bunyi + restart prompt (opsional)
-            beep(900, 120);
-          }
-          render();
-        } else {
-          applyPenalty();
-        }
-      });
-
-      // update UI regularly (biar KPM & countdown jalan)
-      setInterval(render, 120);
-      render();
-    })();
-  </script>
+      <footer class="footer dim">
+        <span>HTML/CSS/JS saja • Background hitam kebiruan • High contrast</span>
+      </footer>
+    </section>
+  </main>
 </body>
 </html>
