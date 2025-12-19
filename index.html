@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>WASD/QERT Trainer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <div>
+        <h1>WASD / QERT Trainer</h1>
+        <p class="sub">Latihan tombol movement + skill untuk pemula (tanpa paragraf panjang).</p>
+      </div>
+      <div class="stat">
+        <div><span id="level">Level</span> <b id="levelVal">1</b></div>
+        <div><span>Streak</span> <b id="streak">0</b></div>
+        <div><span>Akurasi</span> <b id="acc">100%</b></div>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="row">
+        <label>Mode</label>
+        <select id="mode">
+          <option value="single">Single Key (paling mudah)</option>
+          <option value="sequence">Sequence (pola movement)</option>
+        </select>
+
+        <label>Keys</label>
+        <select id="keys">
+          <option value="wasd">WASD</option>
+          <option value="wasdqe">WASD + Q/E</option>
+          <option value="wasdqert">WASD + Q/E/R/T</option>
+        </select>
+
+        <label>Speed</label>
+        <input id="speed" type="range" min="350" max="1500" value="900" />
+        <span id="speedVal">900ms</span>
+
+        <button id="start">Start</button>
+        <button id="stop" class="ghost">Stop</button>
+      </div>
+
+      <div class="prompt">
+        <div class="hint" id="hint">Tekan tombol yang muncul.</div>
+        <div class="big" id="big">W</div>
+        <div class="seq" id="seq"></div>
+      </div>
+
+      <div class="kb">
+        <div class="keyrow">
+          <div class="k" data-k="Q">Q</div>
+          <div class="k" data-k="W">W</div>
+          <div class="k" data-k="E">E</div>
+          <div class="k" data-k="R">R</div>
+          <div class="k" data-k="T">T</div>
+        </div>
+        <div class="keyrow">
+          <div class="k" data-k="A">A</div>
+          <div class="k" data-k="S">S</div>
+          <div class="k" data-k="D">D</div>
+        </div>
+        <p class="tip">Tip: fokus akurasi dulu. Target pemula: 95%+ stabil.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
