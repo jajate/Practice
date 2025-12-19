@@ -3,61 +3,278 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>WASD/QERT Trainer</title>
-  <link rel="stylesheet" href="./style.css" />
-  <script src="./script.js" defer></script>
+  <title>Typing Practice (KPM)</title>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #000;
+      color: #fff;
+    }
+    .shell {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(12px, 3vw, 32px);
+    }
+    .card {
+      width: min(980px, 100%);
+      background: #0b0b0b;
+      border: 1px solid #2a2a2a;
+      border-radius: 18px;
+      padding: clamp(16px, 3vw, 28px);
+      box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    }
+    h1 { margin: 0 0 12px; font-size: clamp(20px, 3vw, 28px); }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+    .stats { display: flex; gap: 16px; flex-wrap: wrap; }
+    .pill {
+      border: 1px solid #2a2a2a;
+      background: #111;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .btn {
+      border: 1px solid #2a2a2a;
+      background: #141414;
+      color: #fff;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .btn:hover { background: #1b1b1b; }
+    :focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+
+    .promptWrap { margin-top: 16px; }
+    .prompt {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid #2a2a2a;
+      background: #070707;
+      min-height: 120px;
+      align-items: center;
+    }
+    .ch {
+      min-width: 64px;
+      min-height: 64px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      font-size: clamp(22px, 3vw, 34px);
+      font-weight: 900;
+      border: 1px solid #2a2a2a;
+      background: #111;
+      user-select: none;
+    }
+    .ch.current { border-color: #fff; }
+    .ch.done { opacity: .45; }
+    .banner {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid #3a1b1b;
+      background: #160707;
+      font-weight: 800;
+    }
+    .hint {
+      margin-top: 12px;
+      opacity: .85;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .srOnly{
+      position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;
+      overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+    }
+    .mobileBlock {
+      text-align: center;
+      padding: 26px;
+      border-radius: 18px;
+      border: 1px solid #2a2a2a;
+      background: #0b0b0b;
+    }
+  </style>
 </head>
 <body>
-  <main class="wrap">
-    <header class="top">
-      <div>
-        <h1>WASD / QERT Trainer</h1>
-        <p class="sub">Ikuti urutan. Yang dihitung cuma input keyboard (nggak ada tap).</p>
-      </div>
+  <main class="shell" id="app"></main>
 
-      <div class="stat">
-        <div><span>Run</span> <b id="runNo">1</b></div>
-        <div><span>Streak</span> <b id="streak">0</b></div>
-        <div><span>Akurasi</span> <b id="acc">100%</b></div>
-        <div><span>Avg time (10)</span> <b id="avgTime">-</b></div>
-        <div><span>Fail rate (10)</span> <b id="failRate">-</b></div>
-      </div>
-    </header>
+  <script>
+    (function () {
+      // --- Keyboard-only gate (opsional, sesuai request "mobile tidak perlu")
+      const isTouchLike = (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) || (navigator.maxTouchPoints > 0);
+      const app = document.getElementById("app");
+      if (isTouchLike) {
+        app.innerHTML = `
+          <div class="mobileBlock" role="alert">
+            <h1>Keyboard required</h1>
+            <p>Mode ini hanya untuk PC/laptop dengan keyboard.</p>
+          </div>`;
+        return;
+      }
 
-    <section class="panel">
-      <div class="row">
-        <label>Keys</label>
-        <select id="keys">
-          <option value="wasd">WASD</option>
-          <option value="wasdqe">WASD + Q/E</option>
-          <option value="wasdqert" selected>WASD + Q/E/R/T</option>
-        </select>
+      // --- Config
+      const PENALTY_FREEZE_MS = 3000;
 
-        <span class="pill">Sequence: <b id="seqLen">7</b></span>
-      </div>
+      // Prompt (silakan ganti sesuai kebutuhan)
+      let target = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG";
+      let idx = 0;
 
-      <div class="prompt">
-        <div class="hint" id="hint">Tekan tombol yang tampil di tengah.</div>
+      // State
+      let startAtMs = null;
+      let correctKeys = 0;
+      let penaltyMs = 0;
+      let penaltyUntilMs = 0;
 
-        <div class="bigWrap">
-          <div class="big" id="big">W</div>
-          <div class="bigSub" id="bigSub">PRESS: W</div>
-        </div>
+      // Mute persisted
+      let muted = localStorage.getItem("muted") === "1";
 
-        <div class="seq" id="seq"></div>
-      </div>
+      // Simple beep sounds (tanpa file audio)
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+      function beep(freq, ms) {
+        if (muted) return;
+        try {
+          const o = ac.createOscillator();
+          const g = ac.createGain();
+          o.type = "square";
+          o.frequency.value = freq;
+          g.gain.value = 0.04;
+          o.connect(g); g.connect(ac.destination);
+          o.start();
+          setTimeout(() => { o.stop(); }, ms);
+        } catch {}
+      }
 
-      <section class="history">
-        <div class="historySummary">
-          <h2>AVG 10 Score Terakhir</h2>
-          <div class="sumLine">KPM (key per menit) : <b id="histKpm">-</b></div>
-          <div class="sumLine">Rata-rata waktu : <b id="histAvg">-</b></div>
-          <div class="sumLine">Rate gagal : <b id="histFail">-</b></div>
-        </div>
+      function reset() {
+        idx = 0;
+        startAtMs = null;
+        correctKeys = 0;
+        penaltyMs = 0;
+        penaltyUntilMs = 0;
+        render();
+      }
 
-        <div id="historyList" class="historyList"></div>
-      </section>
-    </section>
-  </main>
+      function applyPenalty() {
+        const now = Date.now();
+        penaltyUntilMs = now + PENALTY_FREEZE_MS;
+        penaltyMs += PENALTY_FREEZE_MS;
+        beep(160, 90);
+        render();
+      }
+
+      function elapsedMs(now) {
+        if (!startAtMs) return 0;
+        return (now - startAtMs) + penaltyMs;
+      }
+
+      function kpm(now) {
+        if (!startAtMs) return 0;
+        const minutes = Math.max(elapsedMs(now) / 60000, 1/60);
+        return Math.round(correctKeys / minutes);
+      }
+
+      function penaltyLeftSec(now) {
+        return Math.max(0, Math.ceil((penaltyUntilMs - now) / 1000));
+      }
+
+      function render() {
+        const now = Date.now();
+        const left = penaltyLeftSec(now);
+
+        const chars = target.split("").map((c, i) => {
+          const cls = ["ch"];
+          if (i < idx) cls.push("done");
+          if (i === idx) cls.push("current");
+          const safe = (c === " ") ? "␣" : c;
+          return `<div class="${cls.join(" ")}" aria-hidden="true">${safe}</div>`;
+        }).join("");
+
+        app.innerHTML = `
+          <div class="card">
+            <div class="row">
+              <h1>Typing Practice (KPM)</h1>
+              <div class="row">
+                <button class="btn" id="btnReset">Reset</button>
+                <button class="btn" id="btnMute" aria-pressed="${muted}">${muted ? "Unmute" : "Mute"}</button>
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:10px;">
+              <div class="stats" aria-label="Statistik">
+                <div class="pill">KPM: <span id="kpm">${kpm(now)}</span></div>
+                <div class="pill">Benar: <span id="ok">${correctKeys}</span></div>
+                <div class="pill">Penalty: <span id="pen">${Math.floor(penaltyMs/1000)}s</span></div>
+              </div>
+              <div class="pill" aria-label="Status input">${left > 0 ? "PENALTY " + left + "s" : "READY"}</div>
+            </div>
+
+            <div class="promptWrap">
+              <div class="prompt" role="group" aria-label="Teks latihan">
+                ${chars}
+              </div>
+              ${left > 0 ? `<div class="banner" role="status" aria-live="assertive">Salah! Penalti ${left}s</div>` : ""}
+              <div class="hint">
+                Ketik sesuai teks. Spasi = Spacebar. Input akan <b>freeze 3 detik</b> saat salah, lalu lanjut.
+              </div>
+              <div class="srOnly" aria-live="polite" aria-atomic="true">
+                ${"KPM " + kpm(now) + ". Benar " + correctKeys + ". Penalti " + (left > 0 ? left + " detik." : "tidak ada.")}
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.getElementById("btnReset").onclick = reset;
+        document.getElementById("btnMute").onclick = () => {
+          muted = !muted;
+          localStorage.setItem("muted", muted ? "1" : "0");
+          render();
+        };
+      }
+
+      // Key handler
+      window.addEventListener("keydown", (e) => {
+        const now = Date.now();
+        if (startAtMs === null) startAtMs = now;
+
+        // block all input during penalty
+        if (now < penaltyUntilMs) return;
+
+        // ignore modifier keys
+        if (e.key.length !== 1 && e.key !== "Backspace" && e.key !== "Enter" && e.key !== " ") return;
+
+        const expected = target[idx] ?? null;
+        if (expected === null) return;
+
+        // Map Space
+        const pressed = (e.key === " ") ? " " : e.key;
+
+        if (pressed === expected) {
+          correctKeys += 1;
+          idx += 1;
+          beep(520, 40);
+
+          if (idx >= target.length) {
+            // selesai → bunyi + restart prompt (opsional)
+            beep(900, 120);
+          }
+          render();
+        } else {
+          applyPenalty();
+        }
+      });
+
+      // update UI regularly (biar KPM & countdown jalan)
+      setInterval(render, 120);
+      render();
+    })();
+  </script>
 </body>
 </html>
