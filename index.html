@@ -59,11 +59,13 @@
         <div class="boardWrap" aria-label="Typing board">
           <!-- Overlay message area: Start / Get Ready / GO / Finished -->
           <div id="boardMessage" class="boardMessage" hidden>
-            <div id="boardMessageTitle" class="boardMessageTitle">Get Ready!</div>
-            <div id="boardMessageSub" class="boardMessageSub dim">2</div>
-            <div class="boardMessageActions">
-              <button id="btnStart" class="btn" type="button">Start</button>
-              <button id="btnPlayAgain" class="btn" type="button">Play again</button>
+            <div class="boardMessagePanel">
+              <div id="boardMessageTitle" class="boardMessageTitle">Get Ready!</div>
+              <div id="boardMessageSub" class="boardMessageSub dim">2</div>
+              <div class="boardMessageActions">
+                <button id="btnStart" class="btn" type="button">Start</button>
+                <button id="btnPlayAgain" class="btn" type="button">Play again</button>
+              </div>
             </div>
           </div>
 
@@ -91,6 +93,7 @@
                   <th class="num">TIME</th>
                   <th class="num">FAIL</th>
                   <th>STATUS</th>
+                  <th>INPUT</th>
                 </tr>
               </thead>
               <tbody id="historyBody"></tbody>
