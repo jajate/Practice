@@ -1,55 +1,107 @@
 <!doctype html>
 <html lang="id">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Vykas Typing Practice (HTML)</title>
-<meta name="description" content="Typing practice ala Lost Ark (Vykas mode) - HTML/CSS/JS" />
-<link rel="stylesheet" href="./style.css" />
-<script defer src="./app.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vykas Typing Practice (HTML)</title>
+  <meta name="description" content="Typing practice ala Lost Ark (Vykas mode) - HTML/CSS/JS" />
+  <link rel="stylesheet" href="./style.css" />
+  <script defer src="./app.js"></script>
 </head>
 
-
 <body>
-<a class="skip" href="#main">Skip to game</a>
+  <a class="skip" href="#main">Skip to game</a>
 
+  <main id="main" class="shell" tabindex="-1">
+    <section class="card" aria-label="Vykas typing practice">
+      <header class="top">
+        <div class="brand">
+          <h1 class="title">Lost Ark Typing Practice</h1>
+          <p class="subtitle">
+            <span class="badge">Vykas mode</span>
+            <span class="dim">• Keyboard-only • Penalti 3 detik saat salah</span>
+          </p>
+        </div>
 
-<main id="main" class="shell" tabindex="-1">
-<section class="card" aria-label="Vykas typing practice">
-<header class="top">
-<div class="brand">
-<h1 class="title">Lost Ark Typing Practice</h1>
-<p class="subtitle">
-<span class="badge">Vykas mode</span>
-<span class="dim">• Keyboard-only • Penalti 3 detik saat salah</span>
-</p>
-</div>
+        <div class="controls" role="group" aria-label="Controls">
+          <button id="btnNew" class="btn" type="button">New</button>
+          <button id="btnReset" class="btn" type="button">Reset</button>
 
+          <label class="toggle">
+            <input id="toggleEasy" type="checkbox" />
+            <span>Easy</span>
+          </label>
 
-<div class="controls" role="group" aria-label="Controls">
-<button id="btnNew" class="btn" type="button">New</button>
-<button id="btnReset" class="btn" type="button">Reset</button>
+          <button id="btnMute" class="btn" type="button" aria-pressed="false">Mute</button>
+        </div>
+      </header>
 
+      <div class="hud" aria-label="Status bar">
+        <div class="pill" aria-label="Timer">
+          <span class="pillKey">TIME</span>
+          <span id="timerText" class="pillVal">—</span>
+        </div>
 
-<label class="toggle">
-<input id="toggleEasy" type="checkbox" />
-<span>Easy</span>
-</label>
+        <div class="pill" aria-label="Keys per minute">
+          <span class="pillKey">KPM</span>
+          <span id="kpmText" class="pillVal">0</span>
+        </div>
 
+        <div class="pill" aria-label="Correct keys">
+          <span class="pillKey">OK</span>
+          <span id="okText" class="pillVal">0</span>
+        </div>
 
-<button id="btnMute" class="btn" type="button" aria-pressed="false">Mute</button>
-</div>
-</header>
+        <div class="pill" aria-label="Penalty seconds">
+          <span class="pillKey">PEN</span>
+          <span id="penText" class="pillVal">0s</span>
+        </div>
 
+        <div class="pill" aria-label="Round">
+          <span class="pillKey">ROUND</span>
+          <span id="roundText" class="pillVal">1</span>
+        </div>
+      </div>
 
-<div class="hud" aria-label="Status bar">
-<div class="pill" aria-label="Timer">
-<span class="pillKey">TIME</span>
-<span id="timerText" class="pillVal">—</span>
-</div>
+      <div class="game">
+        <div class="hint" id="hint">
+          Klik area game lalu tekan tombol keyboard untuk mulai.
+          <span class="dim">Backspace tidak dipakai; fokus ke ketik sesuai tiles.</span>
+        </div>
 
+        <div id="mobileBlock" class="mobileBlock" hidden role="alert">
+          <h2>Keyboard required</h2>
+          <p>Game ini dibuat untuk PC/laptop dengan keyboard. Mobile/touch tidak didukung.</p>
+        </div>
 
-<div class="pill" aria-label="Keys per minute">
-<span class="pillKey">KPM</span>
-<span id="kpmText" class="pillVal">0</span>
+        <div class="boardWrap" aria-label="Typing board">
+          <div id="board" class="board" role="group" aria-label="Target sequence"></div>
+
+          <!-- penting: overlay default harus hidden -->
+          <div id="overlay" class="overlay" hidden>
+            <div class="overlayCard" role="status" aria-live="assertive">
+              <div class="overlayTitle">Salah!</div>
+              <div class="overlayText">
+                Penalti <span id="penaltyCountdown">3</span>s
+              </div>
+              <div class="overlaySub dim">Input di-freeze, lalu lanjut.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="statusRow">
+          <div id="status" class="status" role="status" aria-live="polite"></div>
+          <div class="kbdTip dim">Tip: fokuskan halaman, lalu ketik cepat.</div>
+        </div>
+
+        <!-- Screen reader live region -->
+        <div id="srLive" class="srOnly" aria-live="polite" aria-atomic="true"></div>
+      </div>
+
+      <footer class="footer dim">
+        <span>HTML/CSS/JS saja • Background hitam kebiruan • High contrast</span>
+      </footer>
+    </section>
+  </main>
+</body>
 </html>
