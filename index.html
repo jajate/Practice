@@ -1,57 +1,71 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>WASD/QERT Trainer</title>
-  <link rel="stylesheet" href="./style.css?v=6" />
-  <script src="./script.js?v=6" defer></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>WASD/QERT Trainer</title>
+<link rel="stylesheet" href="./style.css?v=6" />
+<script src="./script.js?v=6" defer></script>
 </head>
 <body>
-  <main class="wrap">
-    <header class="top">
-      <div>
-        <h1>WASD / QERT Trainer</h1>
-        <p class="sub">Ikuti urutan. Yang dihitung cuma input keyboard (nggak ada tap).</p>
-      </div>
+<main class="wrap">
+<header class="top">
+<div>
+<h1>WASD / QERT Trainer</h1>
+<p class="sub">Ikuti urutan. Yang dihitung cuma input keyboard (nggak ada tap).</p>
+</div>
 
-      <div class="stat">
-        <div><span>Run</span> <b id="runNo">1</b></div>
-        <div><span>Streak</span> <b id="streak">0</b></div>
-        <div><span>Akurasi</span> <b id="acc">100%</b></div>
-        <div><span>Avg time (10)</span> <b id="avgTime">-</b></div>
-        <div><span>Fail rate (10)</span> <b id="failRate">-</b></div>
-      </div>
-    </header>
 
-    <section class="panel">
-      <div class="row">
-        <label>Keys</label>
-        <select id="keys">
-          <option value="wasd">WASD</option>
-          <option value="wasdqe">WASD + Q/E</option>
-          <option value="wasdqert" selected>WASD + Q/E/R/T</option>
-        </select>
+<div class="stat">
+<div><span>Run</span> <b id="runNo">1</b></div>
+<div><span>Streak</span> <b id="streak">0</b></div>
+<div><span>Akurasi</span> <b id="acc">100%</b></div>
+<div><span>Avg time (10)</span> <b id="avgTime">-</b></div>
+<div><span>Fail rate (10)</span> <b id="failRate">-</b></div>
+</div>
+</header>
 
-        <span class="pill">Sequence: <b id="seqLen">7</b></span>
-      </div>
 
-      <div class="prompt">
-        <div class="hint" id="hint">Tekan tombol yang tampil di tengah.</div>
+<section class="panel">
+<div class="row">
+<label>Keys</label>
+<select id="keys">
+<option value="wasd">WASD</option>
+<option value="wasdqe">WASD + Q/E</option>
+<option value="wasdqert" selected>WASD + Q/E/R/T</option>
+</select>
 
-        <div class="bigWrap">
-          <div class="big" id="big">W</div>
-          <div class="bigSub" id="bigSub">PRESS: W</div>
-        </div>
 
-        <div class="seq" id="seq"></div>
-      </div>
+<span class="pill">Sequence: <b id="seqLen">7</b></span>
+</div>
 
-      <section class="history">
-        <h2>Last 10 runs</h2>
-        <div id="historyList" class="historyList"></div>
-      </section>
-    </section>
-  </main>
+
+<div class="prompt">
+<div class="hint" id="hint">Tekan tombol yang tampil di tengah.</div>
+
+
+<div class="bigWrap">
+<div class="big" id="big">W</div>
+<div class="bigSub" id="bigSub">PRESS: W</div>
+</div>
+
+
+<div class="seq" id="seq"></div>
+</div>
+
+
+<section class="history">
+<div class="historySummary">
+<h2>AVG 10 Score Terakhir</h2>
+<div class="sumLine">KPM (key per menit) : <b id="histKpm">-</b></div>
+<div class="sumLine">Rata-rata waktu : <b id="histAvg">-</b></div>
+<div class="sumLine">Rate gagal : <b id="histFail">-</b></div>
+</div>
+
+
+<div id="historyList" class="historyList"></div>
+</section>
+</section>
+</main>
 </body>
 </html>
