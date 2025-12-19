@@ -1,4 +1,15 @@
 const big = document.getElementById("big");
+const failLabel = r.failRateLabel || "-";
+
+
+return `
+<div class="historyLine">
+<span class="n">#${r.runNo ?? "-"}</span>
+<span class="kpm">kpm: ${kpmLabel}</span>
+<span class="avg">avg: ${avgLabel}</span>
+<span class="fail">fail: ${failLabel}</span>
+</div>
+`;
 }).join("");
 }
 
