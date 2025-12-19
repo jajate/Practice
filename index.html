@@ -11,42 +11,36 @@
     <header class="top">
       <div>
         <h1>WASD / QERT Trainer</h1>
-        <p class="sub">Latihan tombol movement + skill untuk pemula (tanpa paragraf panjang).</p>
+        <p class="sub">Latihan tombol movement + skill (Sequence 7 tombol, auto-run).</p>
       </div>
+
       <div class="stat">
-        <div><span id="level">Level</span> <b id="levelVal">1</b></div>
+        <div><span>Run</span> <b id="runNo">1</b></div>
         <div><span>Streak</span> <b id="streak">0</b></div>
         <div><span>Akurasi</span> <b id="acc">100%</b></div>
-        <div><span>Avg time</span> <b id="avgTime">-</b></div>
-        <div><span>Fail rate</span> <b id="failRate">-</b></div>
+        <div><span>Avg time (10)</span> <b id="avgTime">-</b></div>
+        <div><span>Fail rate (10)</span> <b id="failRate">-</b></div>
       </div>
     </header>
 
     <section class="panel">
       <div class="row">
-        <label>Mode</label>
-        <select id="mode">
-          <option value="single">Single Key (paling mudah)</option>
-          <option value="sequence">Sequence (pola movement)</option>
-        </select>
-
         <label>Keys</label>
         <select id="keys">
           <option value="wasd">WASD</option>
           <option value="wasdqe">WASD + Q/E</option>
-          <option value="wasdqert">WASD + Q/E/R/T</option>
+          <option value="wasdqert" selected>WASD + Q/E/R/T</option>
         </select>
 
-        <label>Speed</label>
-        <input id="speed" type="range" min="350" max="1500" value="900" />
+        <label>Tempo</label>
+        <input id="speed" type="range" min="400" max="1600" value="900" />
         <span id="speedVal">900ms</span>
 
-        <button id="start">Start</button>
-        <button id="stop" class="ghost">Stop</button>
+        <span class="pill">Sequence: <b id="seqLen">7</b></span>
       </div>
 
       <div class="prompt">
-        <div class="hint" id="hint">Tekan tombol yang muncul.</div>
+        <div class="hint" id="hint">Ikuti urutan sampai habis.</div>
         <div class="big" id="big">W</div>
         <div class="seq" id="seq"></div>
       </div>
@@ -59,17 +53,18 @@
           <div class="k" data-k="R">R</div>
           <div class="k" data-k="T">T</div>
         </div>
-        <section class="history">
-          <h2>Last 10 runs</h2>
-          <div id="historyList" class="historyList"></div>
-        </section>
         <div class="keyrow">
           <div class="k" data-k="A">A</div>
           <div class="k" data-k="S">S</div>
           <div class="k" data-k="D">D</div>
         </div>
-        <p class="tip">Tip: fokus akurasi dulu. Target pemula: 95%+ stabil.</p>
+        <p class="tip">Tip: fokus akurasi dulu. Pemula target 95%+ stabil.</p>
       </div>
+
+      <section class="history">
+        <h2>Last 10 runs</h2>
+        <div id="historyList" class="historyList"></div>
+      </section>
     </section>
   </main>
 
