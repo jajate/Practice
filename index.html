@@ -15,15 +15,10 @@
   <main id="main" class="shell" tabindex="-1">
     <section class="card" aria-label="Typing practice">
       <header class="top">
-        <div class="brand">
-          <h1 class="title">JAJATE Typing Practice</h1>
-        </div>
+        <h1 class="title">JAJATE Typing Practice</h1>
 
         <div class="controls" role="group" aria-label="Controls">
-          <button id="btnNew" class="btn" type="button">New</button>
-          <button id="btnReset" class="btn" type="button">Reset</button>
-
-          <label class="toggle">
+          <label class="toggle" title="Perpanjang time limit">
             <input id="toggleEasy" type="checkbox" />
             <span>Easy</span>
           </label>
@@ -32,10 +27,16 @@
         </div>
       </header>
 
-      <div class="hud" aria-label="Status bar">
-        <div class="pill" aria-label="Timer">
+      <!-- Per-sequence stats (reset setiap sequence baru) -->
+      <div class="hud" aria-label="Sequence stats">
+        <div class="pill" aria-label="Sequence">
+          <span class="pillKey">SEQUENCE</span>
+          <span id="seqText" class="pillVal">—</span>
+        </div>
+
+        <div class="pill" aria-label="Time">
           <span class="pillKey">TIME</span>
-          <span id="timerText" class="pillVal">—</span>
+          <span id="timeText" class="pillVal">0.00s</span>
         </div>
 
         <div class="pill" aria-label="Keys per minute">
@@ -43,9 +44,9 @@
           <span id="kpmText" class="pillVal">0</span>
         </div>
 
-        <div class="pill" aria-label="Correct keys">
-          <span class="pillKey">OK</span>
-          <span id="okText" class="pillVal">0</span>
+        <div class="pill" aria-label="Fail">
+          <span class="pillKey">FAIL</span>
+          <span id="failText" class="pillVal">0</span>
         </div>
 
         <div class="pill" aria-label="Round">
@@ -56,8 +57,7 @@
 
       <div class="game">
         <div class="hint" id="hint">
-          Klik area game lalu tekan tombol keyboard untuk mulai.
-          <span class="dim">Pool: Q W E A S D + Space • Panjang 7</span>
+          Ketik sesuai tiles. Pool: Q W E A S D + Space • Panjang 7
         </div>
 
         <div id="mobileBlock" class="mobileBlock" hidden role="alert">
@@ -67,6 +67,32 @@
 
         <div class="boardWrap" aria-label="Typing board">
           <div id="board" class="board" role="group" aria-label="Target sequence"></div>
+        </div>
+
+        <!-- Score + History (centered) -->
+        <div class="scoreWrap" aria-label="Score table">
+          <div class="scoreAvg" aria-label="Average last 10">
+            <span class="scoreLabel">AVERAGE (last 10):</span>
+            <span class="scoreItem">KPM <b id="avgKpm">0</b></span>
+            <span class="scoreSep">|</span>
+            <span class="scoreItem">TIME <b id="avgTime">0.00s</b></span>
+            <span class="scoreSep">|</span>
+            <span class="scoreItem">FAIL RATE <b id="avgFailRate">0.0%</b></span>
+          </div>
+
+          <div class="scoreTable" aria-label="History last 10">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th class="num">KPM</th>
+                  <th class="num">TIME</th>
+                  <th class="num">FAIL</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody"></tbody>
+            </table>
+          </div>
         </div>
 
         <!-- Screen reader live region -->
