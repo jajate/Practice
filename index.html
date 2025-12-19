@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Vykas Typing Practice (HTML)</title>
-  <meta name="description" content="Typing practice ala Lost Ark (Vykas mode) - HTML/CSS/JS" />
+  <title>JAJATE Typing Practice</title>
+  <meta name="description" content="JAJATE Typing Practice - HTML/CSS/JS" />
   <link rel="stylesheet" href="./style.css" />
   <script defer src="./app.js"></script>
 </head>
@@ -13,14 +13,10 @@
   <a class="skip" href="#main">Skip to game</a>
 
   <main id="main" class="shell" tabindex="-1">
-    <section class="card" aria-label="Vykas typing practice">
+    <section class="card" aria-label="Typing practice">
       <header class="top">
         <div class="brand">
-          <h1 class="title">Lost Ark Typing Practice</h1>
-          <p class="subtitle">
-            <span class="badge">Vykas mode</span>
-            <span class="dim">• Keyboard-only • Penalti 3 detik saat salah</span>
-          </p>
+          <h1 class="title">JAJATE Typing Practice</h1>
         </div>
 
         <div class="controls" role="group" aria-label="Controls">
@@ -52,11 +48,6 @@
           <span id="okText" class="pillVal">0</span>
         </div>
 
-        <div class="pill" aria-label="Penalty seconds">
-          <span class="pillKey">PEN</span>
-          <span id="penText" class="pillVal">0s</span>
-        </div>
-
         <div class="pill" aria-label="Round">
           <span class="pillKey">ROUND</span>
           <span id="roundText" class="pillVal">1</span>
@@ -66,7 +57,7 @@
       <div class="game">
         <div class="hint" id="hint">
           Klik area game lalu tekan tombol keyboard untuk mulai.
-          <span class="dim">Backspace tidak dipakai; fokus ke ketik sesuai tiles.</span>
+          <span class="dim">Pool: Q W E A S D + Space • Panjang 7</span>
         </div>
 
         <div id="mobileBlock" class="mobileBlock" hidden role="alert">
@@ -76,31 +67,11 @@
 
         <div class="boardWrap" aria-label="Typing board">
           <div id="board" class="board" role="group" aria-label="Target sequence"></div>
-
-          <!-- penting: overlay default harus hidden -->
-          <div id="overlay" class="overlay" hidden>
-            <div class="overlayCard" role="status" aria-live="assertive">
-              <div class="overlayTitle">Salah!</div>
-              <div class="overlayText">
-                Penalti <span id="penaltyCountdown">3</span>s
-              </div>
-              <div class="overlaySub dim">Input di-freeze, lalu lanjut.</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="statusRow">
-          <div id="status" class="status" role="status" aria-live="polite"></div>
-          <div class="kbdTip dim">Tip: fokuskan halaman, lalu ketik cepat.</div>
         </div>
 
         <!-- Screen reader live region -->
         <div id="srLive" class="srOnly" aria-live="polite" aria-atomic="true"></div>
       </div>
-
-      <footer class="footer dim">
-        <span>HTML/CSS/JS saja • Background hitam kebiruan • High contrast</span>
-      </footer>
     </section>
   </main>
 </body>
