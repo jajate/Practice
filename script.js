@@ -1,4 +1,8 @@
 const big = document.getElementById("big");
+<small>avg ${r.avgTimeLabel} • fail ${r.failRateLabel}</small>
+</div>
+</div>
+`).join("");
 }
 
 
@@ -39,7 +43,6 @@ keys: keysSel.value,
 correct,
 total,
 misses,
-kpm,
 score: `${kpm} KPM`,
 avgTimeMs,
 avgTimeLabel: fmtMs(avgTimeMs),
@@ -50,8 +53,6 @@ failRateLabel: `${failRate.toFixed(1)}%`,
 runHistory.unshift(run);
 runHistory = runHistory.slice(0,10);
 localStorage.setItem("runHistory", JSON.stringify(runHistory));
-
-
 renderHistory();
 
 
@@ -96,6 +97,8 @@ updateTopStats();
 
 
 document.addEventListener("keydown", handleKey);
+
+
 keysSel.addEventListener("change", ()=> startRun());
 
 
