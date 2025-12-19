@@ -1,9 +1,4 @@
 :root{
-background:rgba(0,0,0,.25);
-border:1px solid var(--line);
-padding:10px 12px;
-border-radius:999px;
-color:var(--muted);
 }
 
 
@@ -65,29 +60,30 @@ border-color:transparent;
 }
 
 
+/* ===== History: tetap mirip versi lama, tapi ada summary + metrics ===== */
 .history{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
-.historySummary{ text-align:center; padding:6px 0 12px; }
-.historySummary h2{
-margin:0 0 10px;
-font-size:28px;
-font-weight:900;
-letter-spacing:.3px;
-}
-.sumLine{ font-size:20px; font-weight:800; margin:6px 0; }
+.historySummary{ text-align:center; margin-bottom:12px; }
+.historySummary h2{margin:0 0 8px;font-size:18px;color:var(--text);font-weight:900}
+.sumLine{margin:4px 0;color:var(--muted);font-weight:700}
+.sumLine b{color:var(--text)}
 
 
-.historyList{
-display:grid;
-gap:8px;
-justify-items:center;
-padding-bottom:4px;
+.historyList{display:grid;gap:10px}
+.run{
+display:flex;
+flex-wrap:wrap;
+justify-content:space-between;
+align-items:flex-start;
+gap:10px;
+padding:12px 14px;
+border-radius:14px;
+border:1px solid var(--line);
+background:rgba(0,0,0,.18)
 }
-.historyLine{
-font-size:18px;
-font-weight:800;
-letter-spacing:.2px;
-}
-.historyLine .n{ color:var(--muted); font-weight:700; margin-right:8px; }
-.historyLine .kpm{ color:#3aa6ff; }
-.historyLine .avg{ color:var(--ok); }
-.historyLine .fail{ color:var(--bad); }
+.run small{color:var(--muted)}
+
+
+.metrics{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;font-weight:800}
+.metrics .kpm{color:#3aa6ff}
+.metrics .avg{color:var(--ok)}
+.metrics .fail{color:var(--bad)}
