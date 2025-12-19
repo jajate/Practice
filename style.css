@@ -194,9 +194,14 @@ button{ font: inherit; }
   border-color: rgba(159,255,224,0.85);
   box-shadow: 0 0 0 3px rgba(159,255,224,0.10);
 }
-.tile.badFlash{
-  border-color: rgba(255,154,169,0.95);
-  box-shadow: 0 0 0 3px rgba(255,154,169,0.16);
+
+/* A) CURRENT-WRONG: tile merah sementara */
+.tile.wrong{
+  background: rgba(220, 30, 40, 0.78);
+  border-color: rgba(255, 210, 210, 0.60);
+  box-shadow:
+    0 0 0 3px rgba(255, 80, 110, 0.16),
+    0 10px 28px rgba(255, 50, 70, 0.18);
 }
 
 /* Spacebar icon (tile size sama) */
@@ -212,7 +217,39 @@ button{ font: inherit; }
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(0,0,0,0.35);
+  /* Default: transparan supaya tiles masih kelihatan */
+  background: rgba(0,0,0,0.20);
+  backdrop-filter: blur(2px);
+}
+
+/* B) overlay score tone (merah / hijau / orange) */
+.boardMessage[data-state="finished"][data-tone="red"]{
+  background:
+    radial-gradient(520px 320px at 50% 50%, rgba(255, 70, 90, 0.38), rgba(0,0,0,0.12) 62%),
+    rgba(0,0,0,0.16);
+}
+
+.boardMessage[data-state="finished"][data-tone="green"]{
+  background:
+    radial-gradient(520px 320px at 50% 50%, rgba(60, 255, 160, 0.26), rgba(0,0,0,0.12) 62%),
+    rgba(0,0,0,0.16);
+}
+
+.boardMessage[data-state="finished"][data-tone="orange"]{
+  background:
+    radial-gradient(520px 320px at 50% 50%, rgba(255, 178, 74, 0.32), rgba(0,0,0,0.12) 62%),
+    rgba(0,0,0,0.16);
+}
+
+/* panel kecil agar score sangat jelas */
+.boardMessagePanel{
+  padding: 18px 18px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.18);
+  box-shadow: 0 12px 36px rgba(0,0,0,0.45);
+  text-align: center;
+  min-width: min(560px, 92%);
 }
 
 .boardMessageTitle{
@@ -220,17 +257,19 @@ button{ font: inherit; }
   font-weight: 1000;
   letter-spacing: 0.3px;
   text-align: center;
+  text-shadow: 0 3px 18px rgba(0,0,0,0.55);
 }
 
 .boardMessageSub{
-  margin-top: 8px;
+  margin-top: 6px;
   text-align: center;
-  font-size: 16px;
-  font-weight: 900;
+  font-size: 18px;
+  font-weight: 1000;
+  text-shadow: 0 3px 18px rgba(0,0,0,0.55);
 }
 
 .boardMessageActions{
-  margin-top: 14px;
+  margin-top: 12px;
   display: flex;
   gap: 10px;
   justify-content: center;
@@ -250,17 +289,19 @@ button{ font: inherit; }
   border-radius: 14px;
   border: 1px solid var(--stroke);
   background: rgba(0,0,0,0.18);
-  padding: 10px 12px;
+  padding: 12px 14px;
   text-align: center;
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
+  font-size: 15px;
 }
 
 .scoreLabel{ font-weight: 900; color: var(--dim); }
 .scoreItem{ font-weight: 800; }
 .scoreSep{ color: var(--dim); }
+.scoreAvg b{ font-weight: 1000; color: rgba(255,255,255,0.98); }
 
 .scoreTable{
   width: min(860px, 100%);
@@ -288,10 +329,58 @@ button{ font: inherit; }
   padding: 10px 12px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
   font-weight: 800;
+  vertical-align: top;
 }
 
 .scoreTable tr:last-child td{ border-bottom: 0; }
 .num{ text-align: right; }
+
+/* badges */
+.badge{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  font-weight: 1000;
+  letter-spacing: 0.3px;
+  font-size: 12px;
+}
+
+.mode-easy{ color: rgba(255,255,255,0.95); }
+.mode-medium{ color: #67b3ff; }
+.mode-hard{ color: #ff6b6b; }
+
+.status-bad{
+  color: #ff6b6b;
+  border-color: rgba(255, 107, 107, 0.35);
+  background: rgba(255, 107, 107, 0.14);
+}
+
+.status-good{
+  color: #71ff9b;
+  border-color: rgba(113, 255, 155, 0.35);
+  background: rgba(113, 255, 155, 0.12);
+}
+
+.status-perfect{
+  color: #ffb24a;
+  border-color: rgba(255, 178, 74, 0.38);
+  background: rgba(255, 178, 74, 0.12);
+}
+
+/* INPUT coloring */
+.inputCell{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  white-space: pre; /* agar spasi kelihatan */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inOk{ color: #67b3ff; font-weight: 900; }
+.inFailGroup{ color: #ff6b6b; font-weight: 1000; }
 
 .srOnly{
   position:absolute !important;
