@@ -57,8 +57,6 @@ select{
 .k{
   width:64px;height:54px;border-radius:14px;border:1px solid var(--line);
   display:flex;align-items:center;justify-content:center;font-weight:800;background:#0b1426;
-  cursor:pointer;
-  user-select:none;
 }
 .k.on{outline:2px solid rgba(255,191,0,.9);box-shadow:0 0 0 6px rgba(255,191,0,.12)}
 .k.hit{background:rgba(53,208,127,.22);border-color:rgba(53,208,127,.6)}
