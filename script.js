@@ -1,93 +1,105 @@
-:root{
-background:rgba(0,0,0,.25);
-border:1px solid var(--line);
-padding:10px 12px;
-border-radius:999px;
-color:var(--muted);
+const big = document.getElementById("big");
+}).join("");
 }
 
 
-.prompt{
-margin-top:18px;
-border-top:1px solid var(--line);
-padding-top:22px;
-text-align:center;
-}
-.hint{color:var(--muted);margin-bottom:12px}
-
-
-.bigWrap{display:grid;gap:8px;justify-items:center}
-.big{
-font-size:120px;
-font-weight:900;
-letter-spacing:6px;
-line-height:1;
-padding:20px 28px;
-border-radius:18px;
-border:1px solid var(--line);
-background:rgba(0,0,0,.18);
-min-width:220px;
-}
-.bigSub{
-color:var(--muted);
-font-weight:700;
-letter-spacing:1px;
+function newSequence(){
+const ks = keySet();
+seq = Array.from({length: SEQ_LEN}, ()=> randomKey(ks));
+seqIdx = 0;
+updatePrompt();
 }
 
 
-.big.hit{ outline:2px solid rgba(53,208,127,.7); box-shadow:0 0 0 8px rgba(53,208,127,.12); }
-.big.miss{ outline:2px solid rgba(255,90,107,.7); box-shadow:0 0 0 8px rgba(255,90,107,.10); }
+function startRun(){
+total = 0;
+correct = 0;
+misses = 0;
+hitTimes = [];
+runStart = performance.now();
 
 
-.seq{
-margin-top:16px;
-font-size:20px;
-letter-spacing:6px;
-color:var(--muted);
-display:flex;
-gap:10px;
-justify-content:center;
-flex-wrap:wrap;
-}
-.seq .ch{
-padding:8px 10px;
-border-radius:12px;
-border:1px solid var(--line);
-background:rgba(0,0,0,.12);
-min-width:36px;
-text-align:center;
-font-weight:800;
-}
-.seq .cur{
-color:#0b1220;
-background:linear-gradient(180deg, #ffcf3a, var(--accent));
-border-color:transparent;
+newSequence();
+updateTopStats();
 }
 
 
-.history{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
-.historySummary{ text-align:center; padding:6px 0 12px; }
-.historySummary h2{
-margin:0 0 10px;
-font-size:28px;
-font-weight:900;
-letter-spacing:.3px;
-}
-.sumLine{ font-size:20px; font-weight:800; margin:6px 0; }
+function finishRun(){
+const elapsed = (performance.now() - runStart) / 1000;
+const kpm = elapsed > 0 ? Math.round((correct / elapsed) * 60) : 0;
 
 
-.historyList{
-display:grid;
-gap:8px;
-justify-items:center;
-padding-bottom:4px;
+const avgTimeMs = avg(hitTimes);
+const failRate = total ? (misses / total) * 100 : 0;
+
+
+const run = {
+when: Date.now(),
+runNo,
+keys: keysSel.value,
+correct,
+total,
+misses,
+kpm,
+score: `${kpm} KPM`,
+avgTimeMs,
+avgTimeLabel: fmtMs(avgTimeMs),
+failRateLabel: `${failRate.toFixed(1)}%`,
+};
+
+
+runHistory.unshift(run);
+runHistory = runHistory.slice(0,10);
+localStorage.setItem("runHistory", JSON.stringify(runHistory));
+
+
+renderHistory();
+
+
+runNo += 1;
+updateTopStats();
 }
-.historyLine{
-font-size:18px;
-font-weight:800;
-letter-spacing:.2px;
+
+
+function handleKey(e){
+const k = String(e.key).toUpperCase();
+if(!keySet().includes(k)) return;
+
+
+total++;
+
+
+const expected = seq[seqIdx];
+if (k === expected){
+correct++;
+streak++;
+hitTimes.push(performance.now() - shownAt);
+flashBig("hit");
+
+
+seqIdx++;
+if (seqIdx >= seq.length){
+finishRun();
+startRun();
+return;
 }
-.historyLine .n{ color:var(--muted); font-weight:700; margin-right:8px; }
-.historyLine .kpm{ color:#3aa6ff; }
-.historyLine .avg{ color:var(--ok); }
-.historyLine .fail{ color:var(--bad); }
+updatePrompt();
+} else {
+streak = 0;
+misses++;
+flashBig("miss");
+// tetap di expected yang sama
+}
+
+
+updateTopStats();
+}
+
+
+document.addEventListener("keydown", handleKey);
+keysSel.addEventListener("change", ()=> startRun());
+
+
+// init
+renderHistory();
+startRun();
