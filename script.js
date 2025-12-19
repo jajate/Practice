@@ -3,14 +3,15 @@ const seqEl = document.getElementById("seq");
 const hint = document.getElementById("hint");
 
 const keysSel = document.getElementById("keys");
-const speed = document.getElementById("speed");
-const speedVal = document.getElementById("speedVal");
+const speed = document.getElementById("speed");       // tetap ada di UI, tapi tidak dipakai buat auto
+const speedVal = document.getElementById("speedVal"); // cuma display
 
 const runNoEl = document.getElementById("runNo");
 const streakEl = document.getElementById("streak");
 const accEl = document.getElementById("acc");
 const avgTimeEl = document.getElementById("avgTime");
 const failRateEl = document.getElementById("failRate");
+
 const historyList = document.getElementById("historyList");
 const seqLenEl = document.getElementById("seqLen");
 
@@ -19,9 +20,7 @@ if (seqLenEl) seqLenEl.textContent = String(SEQ_LEN);
 
 let seq = [];
 let seqIdx = 0;
-
-let shownAt = 0;      // kapan target aktif muncul
-let awaiting = true;  // masih nunggu input untuk step ini?
+let shownAt = 0;
 
 // per-run stats
 let total = 0;
@@ -36,9 +35,6 @@ let runNo = 1;
 
 // rolling history max 10
 let runHistory = JSON.parse(localStorage.getItem("runHistory") || "[]");
-
-// timer
-let tickHandle = null;
 
 function keySet() {
   const v = keysSel.value;
@@ -118,11 +114,10 @@ function newSequence(){
 
   seqEl.textContent = seq.join(" ");
   big.textContent = seq[0];
-  hint.textContent = "Pencet tombol yang disorot / yang tampil di tengah.";
+  hint.textContent = "Tekan tombol yang disorot / yang tampil di tengah.";
   setHighlight(seq[0]);
 
   shownAt = performance.now();
-  awaiting = true;
 }
 
 function startRun(){
@@ -165,31 +160,8 @@ function finishRun(){
   updateTopStats();
 }
 
-function advanceStep(missed=false){
-  // dipanggil saat: benar (advance), atau tick habis (auto miss advance)
-  if (missed){
-    misses++;
-    streak = 0;
-    // kasih efek miss di expected key
-    flashKey(seq[seqIdx], "miss");
-  }
-
-  seqIdx++;
-
-  if (seqIdx >= seq.length){
-    finishRun();
-    startRun();
-    return;
-  }
-
-  big.textContent = seq[seqIdx];
-  setHighlight(seq[seqIdx]);
-  shownAt = performance.now();
-  awaiting = true;
-}
-
-function handleInputKey(letter){
-  const k = String(letter).toUpperCase();
+function handleKey(e){
+  const k = String(e.key).toUpperCase();
   if(!keySet().includes(k)) return;
 
   total++;
@@ -201,51 +173,36 @@ function handleInputKey(letter){
     hitTimes.push(performance.now() - shownAt);
     flashKey(k, "hit");
 
-    awaiting = false;
-    advanceStep(false);
+    seqIdx++;
+    if (seqIdx >= seq.length){
+      finishRun();
+      startRun();
+      return;
+    }
+
+    big.textContent = seq[seqIdx];
+    setHighlight(seq[seqIdx]);
+    shownAt = performance.now();
   } else {
     streak = 0;
     misses++;
     flashKey(k, "miss");
-    // tetap nunggu expected yang sama (biar belajar)
+    // tetap di expected yang sama
   }
 
   updateTopStats();
 }
 
-function startTimer(){
-  if (tickHandle) clearInterval(tickHandle);
-  const interval = Number(speed?.value || 900);
+document.addEventListener("keydown", handleKey);
 
-  tickHandle = setInterval(() => {
-    // kalau user belum tekan yang bener sampai tempo habis → auto miss + maju
-    if (awaiting) {
-      advanceStep(true);
-      updateTopStats();
-    }
-  }, interval);
+keysSel.addEventListener("change", ()=> startRun());
+
+// tempo slider sekarang cuma display (nggak bikin auto gerak)
+if (speed && speedVal) {
+  speedVal.textContent = `${speed.value}ms`;
+  speed.addEventListener("input", ()=> speedVal.textContent = `${speed.value}ms`);
 }
 
-document.addEventListener("keydown", (e)=> handleInputKey(e.key));
-
-// tap/click support (biar di HP bisa)
-document.querySelectorAll(".k").forEach(el=>{
-  el.addEventListener("click", ()=> handleInputKey(el.dataset.k));
-  el.addEventListener("touchstart", (ev)=>{
-    ev.preventDefault();
-    handleInputKey(el.dataset.k);
-  }, { passive:false });
-});
-
-keysSel?.addEventListener("change", ()=> startRun());
-
-speed?.addEventListener("input", ()=> {
-  if (speedVal) speedVal.textContent = `${speed.value}ms`;
-  startTimer(); // tempo berubah → interval timer ikut berubah
-});
-
 // init
-if (speedVal && speed) speedVal.textContent = `${speed.value}ms`;
 renderHistory();
 startRun();
-startTimer();
