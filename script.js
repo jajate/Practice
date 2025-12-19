@@ -1,19 +1,4 @@
 const big = document.getElementById("big");
-<b>RUN #${r.runNo ?? "-"}</b> • <small>${r.keys ?? "-"}</small><br/>
-<small>${r.when ? new Date(r.when).toLocaleString() : ""}</small>
-</div>
-
-
-<div style="text-align:right">
-<div class="metrics">
-<span class="kpm">kpm: ${kpmLabel}</span>
-<span class="avg">avg: ${avgLabel}</span>
-<span class="fail">fail: ${failLabel}</span>
-</div>
-</div>
-</div>
-`;
-}).join("");
 }
 
 
