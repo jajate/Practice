@@ -18,10 +18,10 @@
         <h1 class="title">JAJATE Typing Practice</h1>
 
         <div class="controls" role="group" aria-label="Controls">
-          <label class="toggle" title="Perpanjang time limit">
-            <input id="toggleEasy" type="checkbox" />
-            <span>Easy</span>
-          </label>
+          <!-- Mode buttons: JS akan menyembunyikan mode aktif -->
+          <button class="btn modeBtn" type="button" data-mode="EASY">EASY</button>
+          <button class="btn modeBtn" type="button" data-mode="MEDIUM">MEDIUM</button>
+          <button class="btn modeBtn" type="button" data-mode="HARD">HARD</button>
 
           <button id="btnMute" class="btn" type="button" aria-pressed="false">Mute</button>
         </div>
@@ -29,11 +29,6 @@
 
       <!-- Per-sequence stats (reset setiap sequence baru) -->
       <div class="hud" aria-label="Sequence stats">
-        <div class="pill" aria-label="Sequence">
-          <span class="pillKey">SEQUENCE</span>
-          <span id="seqText" class="pillVal">—</span>
-        </div>
-
         <div class="pill" aria-label="Time">
           <span class="pillKey">TIME</span>
           <span id="timeText" class="pillVal">0.00s</span>
@@ -51,21 +46,27 @@
 
         <div class="pill" aria-label="Round">
           <span class="pillKey">ROUND</span>
-          <span id="roundText" class="pillVal">1</span>
+          <span id="roundText" class="pillVal">1/∞</span>
         </div>
       </div>
 
       <div class="game">
-        <div class="hint" id="hint">
-          Ketik sesuai tiles. Pool: Q W E A S D + Space • Panjang 7
-        </div>
-
         <div id="mobileBlock" class="mobileBlock" hidden role="alert">
           <h2>Keyboard required</h2>
           <p>Game ini dibuat untuk PC/laptop dengan keyboard. Mobile/touch tidak didukung.</p>
         </div>
 
         <div class="boardWrap" aria-label="Typing board">
+          <!-- Overlay message area: Start / Get Ready / GO / Finished -->
+          <div id="boardMessage" class="boardMessage" hidden>
+            <div id="boardMessageTitle" class="boardMessageTitle">Get Ready!</div>
+            <div id="boardMessageSub" class="boardMessageSub dim">2</div>
+            <div class="boardMessageActions">
+              <button id="btnStart" class="btn" type="button">Start</button>
+              <button id="btnPlayAgain" class="btn" type="button">Play again</button>
+            </div>
+          </div>
+
           <div id="board" class="board" role="group" aria-label="Target sequence"></div>
         </div>
 
@@ -85,9 +86,11 @@
               <thead>
                 <tr>
                   <th>#</th>
+                  <th>MODE</th>
                   <th class="num">KPM</th>
                   <th class="num">TIME</th>
                   <th class="num">FAIL</th>
+                  <th>STATUS</th>
                 </tr>
               </thead>
               <tbody id="historyBody"></tbody>
