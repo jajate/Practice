@@ -1,230 +1,82 @@
-const big = document.getElementById("big");
-const seqEl = document.getElementById("seq");
-const hint = document.getElementById("hint");
-
-const keysSel = document.getElementById("keys");
-const speed = document.getElementById("speed");
-const speedVal = document.getElementById("speedVal");
-
-const runNoEl = document.getElementById("runNo");
-const streakEl = document.getElementById("streak");
-const accEl = document.getElementById("acc");
-const avgTimeEl = document.getElementById("avgTime");
-const failRateEl = document.getElementById("failRate");
-
-const historyList = document.getElementById("historyList");
-const seqLenEl = document.getElementById("seqLen");
-
-const SEQ_LEN = 7;
-seqLenEl.textContent = String(SEQ_LEN);
-
-let running = true;
-let seq = [];
-let seqIdx = 0;
-
-let shownAt = 0;
-
-// per-run stats
-let total = 0;
-let correct = 0;
-let misses = 0;
-let hitTimes = [];
-let runStart = 0;
-
-// global stats
-let streak = 0;
-let runNo = 1;
-
-// rolling history max 10
-let runHistory = JSON.parse(localStorage.getItem("runHistory") || "[]");
-
-function keySet() {
-  const v = keysSel.value;
-  if (v === "wasd") return ["W","A","S","D"];
-  if (v === "wasdqe") return ["W","A","S","D","Q","E"];
-  return ["W","A","S","D","Q","E","R","T"];
+:root{
+  --bg:#0b1220; --panel:#0f1a2c; --text:#eef2ff; --muted:#aab3c5;
+  --accent:#ffbf00; --ok:#35d07f; --bad:#ff5a6b; --line:rgba(255,255,255,.08);
 }
-function randomKey(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-
-function setHighlight(k){
-  document.querySelectorAll(".k").forEach(el=>{
-    el.classList.toggle("on", el.dataset.k === k);
-  });
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,Segoe UI,Roboto,Arial;
+  background:radial-gradient(900px 600px at 20% 0%, #152747, var(--bg));
+  color:var(--text);
 }
-function flashKey(k, cls){
-  const el = document.querySelector(`.k[data-k="${k}"]`);
-  if(!el) return;
-  el.classList.add(cls);
-  setTimeout(()=>el.classList.remove(cls), 220);
+.wrap{max-width:980px;margin:0 auto;padding:28px}
+.top{display:flex;gap:18px;justify-content:space-between;align-items:flex-start}
+h1{margin:0;font-size:28px;letter-spacing:.4px}
+.sub{margin:6px 0 0;color:var(--muted)}
+
+.stat{
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+  background:rgba(0,0,0,.25);
+  border:1px solid var(--line);
+  padding:12px 14px;
+  border-radius:14px;
+}
+.stat span{color:var(--muted);margin-right:6px}
+
+.panel{
+  margin-top:18px;
+  background:rgba(10,16,25,.65);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px;
+}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+label{color:var(--muted);font-size:13px;margin-right:4px}
+select,input[type=range]{
+  border-radius:12px;border:1px solid var(--line);background:#0b1426;color:var(--text);
+  padding:10px 12px;font-size:14px
+}
+input[type=range]{padding:10px 0; width:220px}
+#speedVal{color:var(--muted)}
+.pill{
+  margin-left:auto;
+  background:rgba(0,0,0,.25);
+  border:1px solid var(--line);
+  padding:10px 12px;
+  border-radius:999px;
+  color:var(--muted);
 }
 
-function fmtMs(ms){
-  if (!Number.isFinite(ms)) return "-";
-  return ms < 1000 ? `${Math.round(ms)}ms` : `${(ms/1000).toFixed(2)}s`;
+.prompt{margin-top:18px;border-top:1px solid var(--line);padding-top:18px;text-align:center}
+.hint{color:var(--muted);margin-bottom:10px}
+.big{font-size:120px;font-weight:900;letter-spacing:6px;line-height:1}
+.seq{margin-top:14px;font-size:22px;letter-spacing:6px;color:var(--muted)}
+
+.kb{margin-top:18px;border-top:1px solid var(--line);padding-top:18px}
+.keyrow{display:flex;justify-content:center;gap:10px;margin:10px 0}
+.k{
+  width:64px;height:54px;border-radius:14px;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-weight:800;background:#0b1426
 }
+.k.on{outline:2px solid rgba(255,191,0,.9);box-shadow:0 0 0 6px rgba(255,191,0,.12)}
+.k.hit{background:rgba(53,208,127,.22);border-color:rgba(53,208,127,.6)}
+.k.miss{background:rgba(255,90,107,.18);border-color:rgba(255,90,107,.6)}
+.tip{margin:10px 0 0;color:var(--muted);text-align:center;font-size:13px}
 
-function avg(arr){
-  if(!arr.length) return NaN;
-  return arr.reduce((a,b)=>a+b,0) / arr.length;
+.history{margin-top:18px;border-top:1px solid var(--line);padding-top:18px}
+.history h2{margin:0 0 10px;font-size:16px;color:var(--muted);font-weight:700}
+.historyList{display:grid;gap:10px}
+.run{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:rgba(0,0,0,.18)
 }
-
-function calcRollingAvgTime(){
-  // average of avgTime from last 10 runs (only those with data)
-  const vals = runHistory
-    .slice(0,10)
-    .map(r => r.avgTimeMs)
-    .filter(v => Number.isFinite(v));
-  return avg(vals);
-}
-
-function calcRollingFailRate(){
-  // weighted by attempts across last 10 runs
-  const last = runHistory.slice(0,10);
-  const t = last.reduce((s,r)=>s + (r.total||0), 0);
-  const m = last.reduce((s,r)=>s + (r.misses||0), 0);
-  return t ? (m / t) * 100 : 0;
-}
-
-function updateTopStats(){
-  runNoEl.textContent = String(runNo);
-  streakEl.textContent = String(streak);
-
-  const a = total ? Math.round((correct/total)*100) : 100;
-  accEl.textContent = `${a}%`;
-
-  const rollAvg = calcRollingAvgTime();
-  avgTimeEl.textContent = fmtMs(rollAvg);
-
-  const rollFail = calcRollingFailRate();
-  failRateEl.textContent = `${rollFail.toFixed(1)}%`;
-}
-
-function renderHistory(){
-  if(!historyList) return;
-  if(!runHistory.length){
-    historyList.innerHTML = `<div class="run"><small>No runs yet</small></div>`;
-    return;
-  }
-  historyList.innerHTML = runHistory
-    .slice(0,10)
-    .map(r => `
-      <div class="run">
-        <div>
-          <b>RUN #${r.runNo}</b> • <small>${r.keys}</small><br/>
-          <small>${new Date(r.when).toLocaleString()}</small>
-        </div>
-        <div style="text-align:right">
-          <b>${r.score}</b><br/>
-          <small>avg ${r.avgTimeLabel} • fail ${r.failRateLabel}</small>
-        </div>
-      </div>
-    `).join("");
-}
-
-function newSequence(){
-  const ks = keySet();
-  seq = Array.from({length: SEQ_LEN}, ()=> randomKey(ks));
-  seqIdx = 0;
-
-  seqEl.textContent = seq.join(" ");
-  big.textContent = seq[0];
-  hint.textContent = "Ikuti urutan sampai habis.";
-  setHighlight(seq[0]);
-
-  shownAt = performance.now();
-}
-
-function startRun(){
-  total = 0;
-  correct = 0;
-  misses = 0;
-  hitTimes = [];
-  runStart = performance.now();
-
-  newSequence();
-  updateTopStats();
-}
-
-function finishRun(){
-  const elapsed = (performance.now() - runStart) / 1000;
-  const kpm = elapsed > 0 ? Math.round((correct / elapsed) * 60) : 0;
-
-  const avgTimeMs = avg(hitTimes);
-  const failRate = total ? (misses / total) * 100 : 0;
-
-  const run = {
-    when: Date.now(),
-    runNo,
-    keys: keysSel.value,
-    correct,
-    total,
-    misses,
-    score: `${kpm} KPM`,
-    avgTimeMs,
-    avgTimeLabel: fmtMs(avgTimeMs),
-    failRateLabel: `${failRate.toFixed(1)}%`,
-  };
-
-  runHistory.unshift(run);
-  runHistory = runHistory.slice(0,10);
-  localStorage.setItem("runHistory", JSON.stringify(runHistory));
-  renderHistory();
-
-  runNo += 1;
-  updateTopStats();
-}
-
-function handleKey(e){
-  if(!running) return;
-
-  const k = e.key.toUpperCase();
-  if(!keySet().includes(k)) return;
-
-  total++;
-
-  const expected = seq[seqIdx];
-  if (k === expected){
-    correct++;
-    streak++;
-
-    hitTimes.push(performance.now() - shownAt);
-    flashKey(k, "hit");
-
-    seqIdx++;
-    if (seqIdx >= seq.length){
-      // run selesai -> simpan ke history -> run baru
-      finishRun();
-      startRun();
-      return;
-    } else {
-      big.textContent = seq[seqIdx];
-      setHighlight(seq[seqIdx]);
-      shownAt = performance.now();
-    }
-  } else {
-    streak = 0;
-    misses++;
-    flashKey(k, "miss");
-    // expected tetap sama, biar pemula belajar
-  }
-
-  updateTopStats();
-}
-
-speed.addEventListener("input", ()=> {
-  speedVal.textContent = `${speed.value}ms`;
-  // tempo slider disiapkan kalau nanti mau kamu pakai buat auto-tick,
-  // sekarang hanya tampilkan value (no auto miss).
-});
-
-keysSel.addEventListener("change", ()=> {
-  // ganti keyset -> mulai run baru biar konsisten
-  startRun();
-});
-
-document.addEventListener("keydown", handleKey);
-
-// init
-speedVal.textContent = `${speed.value}ms`;
-renderHistory();
-startRun();
+.run small{color:var(--muted)}
