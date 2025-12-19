@@ -1,10 +1,8 @@
-/* FIX utama: pastikan atribut hidden benar-benar menyembunyikan elemen. */
 [hidden] { display: none !important; }
 
 :root{
   color-scheme: dark;
 
-  /* hitam kebiruan */
   --bg0: #020615;
   --bg1: #00030c;
 
@@ -18,7 +16,6 @@
   --tileStroke: rgba(255,255,255,0.14);
 
   --focus: #ffffff;
-
   --shadow: 0 18px 60px rgba(0,0,0,0.65);
 }
 
@@ -53,12 +50,13 @@ body{
   z-index: 9999;
 }
 
+/* card top-center */
 .shell{
   min-height: 100vh;
   display:flex;
-  align-items:center;
   justify-content:center;
-  padding: clamp(12px, 3vw, 32px);
+  align-items:flex-start;
+  padding: 24px clamp(12px, 3vw, 32px);
 }
 
 .card{
@@ -109,18 +107,6 @@ button{ font: inherit; }
 }
 .btn:hover{ background: rgba(255,255,255,0.09); }
 
-.toggle{
-  display:flex;
-  align-items:center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  border: 1px solid var(--stroke);
-  background: rgba(255,255,255,0.06);
-  font-weight: 800;
-}
-.toggle input{ transform: translateY(1px); }
-
 :focus-visible{
   outline: 3px solid var(--focus);
   outline-offset: 3px;
@@ -156,13 +142,6 @@ button{ font: inherit; }
 
 .game{ margin-top: 16px; }
 
-.hint{
-  font-size: 14px;
-  line-height: 1.4;
-  margin-bottom: 12px;
-  color: var(--dim);
-}
-
 .mobileBlock{
   padding: 16px;
   border-radius: 16px;
@@ -179,6 +158,7 @@ button{ font: inherit; }
   border: 1px solid var(--stroke);
   background: rgba(0,0,0,0.25);
   padding: clamp(14px, 2.5vw, 22px);
+  overflow: hidden;
 }
 
 .board{
@@ -190,7 +170,6 @@ button{ font: inherit; }
   min-height: 140px;
 }
 
-/* tiles lebih besar */
 .tile{
   min-width: 68px;
   min-height: 68px;
@@ -220,11 +199,41 @@ button{ font: inherit; }
   box-shadow: 0 0 0 3px rgba(255,154,169,0.16);
 }
 
-/* Spacebar icon (ukuran tile sama seperti lainnya) */
+/* Spacebar icon (tile size sama) */
 .spaceIcon{
   font-size: clamp(20px, 2.6vw, 30px);
   letter-spacing: 0;
   opacity: 0.95;
+}
+
+/* board message overlay */
+.boardMessage{
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,0.35);
+}
+
+.boardMessageTitle{
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 1000;
+  letter-spacing: 0.3px;
+  text-align: center;
+}
+
+.boardMessageSub{
+  margin-top: 8px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.boardMessageActions{
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
 }
 
 /* Score + history (centered) */
@@ -237,7 +246,7 @@ button{ font: inherit; }
 }
 
 .scoreAvg{
-  width: min(820px, 100%);
+  width: min(860px, 100%);
   border-radius: 14px;
   border: 1px solid var(--stroke);
   background: rgba(0,0,0,0.18);
@@ -254,7 +263,7 @@ button{ font: inherit; }
 .scoreSep{ color: var(--dim); }
 
 .scoreTable{
-  width: min(820px, 100%);
+  width: min(860px, 100%);
   border-radius: 14px;
   border: 1px solid var(--stroke);
   background: rgba(0,0,0,0.18);
@@ -278,11 +287,10 @@ button{ font: inherit; }
 .scoreTable td{
   padding: 10px 12px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .scoreTable tr:last-child td{ border-bottom: 0; }
-
 .num{ text-align: right; }
 
 .srOnly{
