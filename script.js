@@ -1,10 +1,9 @@
 const big = document.getElementById("big");
+const bigSub = document.getElementById("bigSub");
 const seqEl = document.getElementById("seq");
 const hint = document.getElementById("hint");
 
 const keysSel = document.getElementById("keys");
-const speed = document.getElementById("speed");       // tetap ada di UI, tapi tidak dipakai buat auto
-const speedVal = document.getElementById("speedVal"); // cuma display
 
 const runNoEl = document.getElementById("runNo");
 const streakEl = document.getElementById("streak");
@@ -44,18 +43,6 @@ function keySet() {
 }
 function randomKey(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-function setHighlight(k){
-  document.querySelectorAll(".k").forEach(el=>{
-    el.classList.toggle("on", el.dataset.k === k);
-  });
-}
-function flashKey(k, cls){
-  const el = document.querySelector(`.k[data-k="${k}"]`);
-  if(!el) return;
-  el.classList.add(cls);
-  setTimeout(()=>el.classList.remove(cls), 220);
-}
-
 function fmtMs(ms){
   if (!Number.isFinite(ms)) return "-";
   return ms < 1000 ? `${Math.round(ms)}ms` : `${(ms/1000).toFixed(2)}s`;
@@ -74,6 +61,27 @@ function calcRollingFailRate(){
   const t = last.reduce((s,r)=>s + (r.total||0), 0);
   const m = last.reduce((s,r)=>s + (r.misses||0), 0);
   return t ? (m / t) * 100 : 0;
+}
+
+function flashBig(cls){
+  big.classList.remove("hit","miss");
+  big.classList.add(cls);
+  setTimeout(()=>big.classList.remove(cls), 180);
+}
+
+function renderSeq(){
+  seqEl.innerHTML = seq.map((ch, i) =>
+    `<span class="ch ${i===seqIdx ? "cur":""}">${ch}</span>`
+  ).join("");
+}
+
+function updatePrompt(){
+  const expected = seq[seqIdx];
+  big.textContent = expected;
+  if (bigSub) bigSub.textContent = `PRESS: ${expected}`;
+  if (hint) hint.textContent = "Tekan tombol yang tampil di tengah.";
+  renderSeq();
+  shownAt = performance.now();
 }
 
 function updateTopStats(){
@@ -111,13 +119,7 @@ function newSequence(){
   const ks = keySet();
   seq = Array.from({length: SEQ_LEN}, ()=> randomKey(ks));
   seqIdx = 0;
-
-  seqEl.textContent = seq.join(" ");
-  big.textContent = seq[0];
-  hint.textContent = "Tekan tombol yang disorot / yang tampil di tengah.";
-  setHighlight(seq[0]);
-
-  shownAt = performance.now();
+  updatePrompt();
 }
 
 function startRun(){
@@ -171,7 +173,7 @@ function handleKey(e){
     correct++;
     streak++;
     hitTimes.push(performance.now() - shownAt);
-    flashKey(k, "hit");
+    flashBig("hit");
 
     seqIdx++;
     if (seqIdx >= seq.length){
@@ -179,14 +181,11 @@ function handleKey(e){
       startRun();
       return;
     }
-
-    big.textContent = seq[seqIdx];
-    setHighlight(seq[seqIdx]);
-    shownAt = performance.now();
+    updatePrompt();
   } else {
     streak = 0;
     misses++;
-    flashKey(k, "miss");
+    flashBig("miss");
     // tetap di expected yang sama
   }
 
@@ -196,12 +195,6 @@ function handleKey(e){
 document.addEventListener("keydown", handleKey);
 
 keysSel.addEventListener("change", ()=> startRun());
-
-// tempo slider sekarang cuma display (nggak bikin auto gerak)
-if (speed && speedVal) {
-  speedVal.textContent = `${speed.value}ms`;
-  speed.addEventListener("input", ()=> speedVal.textContent = `${speed.value}ms`);
-}
 
 // init
 renderHistory();
