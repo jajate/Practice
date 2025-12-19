@@ -1,4 +1,34 @@
 :root{
+--bg:#0b1220; --text:#eef2ff; --muted:#aab3c5;
+--accent:#ffbf00; --ok:#35d07f; --bad:#ff5a6b; --line:rgba(255,255,255,.08);
+}
+*{box-sizing:border-box}
+body{
+margin:0;
+font-family:system-ui,Segoe UI,Roboto,Arial;
+background:radial-gradient(900px 600px at 20% 0%, #152747, var(--bg));
+color:var(--text);
+}
+.wrap{max-width:980px;margin:0 auto;padding:28px}
+.top{display:flex;gap:18px;justify-content:space-between;align-items:flex-start}
+h1{margin:0;font-size:28px;letter-spacing:.4px}
+.sub{margin:6px 0 0;color:var(--muted)}
+
+
+.stat{
+display:flex; flex-wrap:wrap; gap:14px;
+background:rgba(0,0,0,.25);
+border:1px solid var(--line);
+padding:12px 14px;
+border-radius:14px;
+}
+.stat span{color:var(--muted);margin-right:6px}
+
+
+.panel{
+margin-top:18px;
+background:rgba(10,16,25,.65);
+border:1px solid var(--line);
 border-radius:18px;
 padding:18px;
 }
@@ -61,45 +91,4 @@ justify-content:center;
 flex-wrap:wrap;
 }
 .seq .ch{
-padding:8px 10px;
-border-radius:12px;
-border:1px solid var(--line);
-background:rgba(0,0,0,.12);
-min-width:36px;
-text-align:center;
-font-weight:800;
-}
-.seq .cur{
-color:#0b1220;
-background:linear-gradient(180deg, #ffcf3a, var(--accent));
-border-color:transparent;
-}
-
-
-/* ===== History: tetap mirip versi lama, tapi ada summary + metrics ===== */
-.history{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
-.historySummary{ text-align:center; margin-bottom:12px; }
-.historySummary h2{margin:0 0 8px;font-size:18px;color:var(--text);font-weight:900}
-.sumLine{margin:4px 0;color:var(--muted);font-weight:700}
-.sumLine b{color:var(--text)}
-
-
-.historyList{display:grid;gap:10px}
-.run{
-display:flex;
-flex-wrap:wrap;
-justify-content:space-between;
-align-items:flex-start;
-gap:10px;
-padding:12px 14px;
-border-radius:14px;
-border:1px solid var(--line);
-background:rgba(0,0,0,.18)
-}
 .run small{color:var(--muted)}
-
-
-.metrics{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;font-weight:800}
-.metrics .kpm{color:#3aa6ff}
-.metrics .avg{color:var(--ok)}
-.metrics .fail{color:var(--bad)}
