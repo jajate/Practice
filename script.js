@@ -1,201 +1,93 @@
-const big = document.getElementById("big");
-const bigSub = document.getElementById("bigSub");
-const seqEl = document.getElementById("seq");
-const hint = document.getElementById("hint");
-
-const keysSel = document.getElementById("keys");
-
-const runNoEl = document.getElementById("runNo");
-const streakEl = document.getElementById("streak");
-const accEl = document.getElementById("acc");
-const avgTimeEl = document.getElementById("avgTime");
-const failRateEl = document.getElementById("failRate");
-
-const historyList = document.getElementById("historyList");
-const seqLenEl = document.getElementById("seqLen");
-
-const SEQ_LEN = 7;
-if (seqLenEl) seqLenEl.textContent = String(SEQ_LEN);
-
-let seq = [];
-let seqIdx = 0;
-let shownAt = 0;
-
-// per-run stats
-let total = 0;
-let correct = 0;
-let misses = 0;
-let hitTimes = [];
-let runStart = 0;
-
-// global stats
-let streak = 0;
-let runNo = 1;
-
-// rolling history max 10
-let runHistory = JSON.parse(localStorage.getItem("runHistory") || "[]");
-
-function keySet() {
-  const v = keysSel.value;
-  if (v === "wasd") return ["W","A","S","D"];
-  if (v === "wasdqe") return ["W","A","S","D","Q","E"];
-  return ["W","A","S","D","Q","E","R","T"];
-}
-function randomKey(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-
-function fmtMs(ms){
-  if (!Number.isFinite(ms)) return "-";
-  return ms < 1000 ? `${Math.round(ms)}ms` : `${(ms/1000).toFixed(2)}s`;
-}
-function avg(arr){
-  if(!arr.length) return NaN;
-  return arr.reduce((a,b)=>a+b,0) / arr.length;
+:root{
+background:rgba(0,0,0,.25);
+border:1px solid var(--line);
+padding:10px 12px;
+border-radius:999px;
+color:var(--muted);
 }
 
-function calcRollingAvgTime(){
-  const vals = runHistory.slice(0,10).map(r => r.avgTimeMs).filter(v => Number.isFinite(v));
-  return avg(vals);
-}
-function calcRollingFailRate(){
-  const last = runHistory.slice(0,10);
-  const t = last.reduce((s,r)=>s + (r.total||0), 0);
-  const m = last.reduce((s,r)=>s + (r.misses||0), 0);
-  return t ? (m / t) * 100 : 0;
-}
 
-function flashBig(cls){
-  big.classList.remove("hit","miss");
-  big.classList.add(cls);
-  setTimeout(()=>big.classList.remove(cls), 180);
+.prompt{
+margin-top:18px;
+border-top:1px solid var(--line);
+padding-top:22px;
+text-align:center;
 }
+.hint{color:var(--muted);margin-bottom:12px}
 
-function renderSeq(){
-  seqEl.innerHTML = seq.map((ch, i) =>
-    `<span class="ch ${i===seqIdx ? "cur":""}">${ch}</span>`
-  ).join("");
+
+.bigWrap{display:grid;gap:8px;justify-items:center}
+.big{
+font-size:120px;
+font-weight:900;
+letter-spacing:6px;
+line-height:1;
+padding:20px 28px;
+border-radius:18px;
+border:1px solid var(--line);
+background:rgba(0,0,0,.18);
+min-width:220px;
 }
-
-function updatePrompt(){
-  const expected = seq[seqIdx];
-  big.textContent = expected;
-  if (bigSub) bigSub.textContent = `PRESS: ${expected}`;
-  if (hint) hint.textContent = "Tekan tombol yang tampil di tengah.";
-  renderSeq();
-  shownAt = performance.now();
+.bigSub{
+color:var(--muted);
+font-weight:700;
+letter-spacing:1px;
 }
 
-function updateTopStats(){
-  if (runNoEl) runNoEl.textContent = String(runNo);
-  if (streakEl) streakEl.textContent = String(streak);
 
-  const a = total ? Math.round((correct/total)*100) : 100;
-  if (accEl) accEl.textContent = `${a}%`;
+.big.hit{ outline:2px solid rgba(53,208,127,.7); box-shadow:0 0 0 8px rgba(53,208,127,.12); }
+.big.miss{ outline:2px solid rgba(255,90,107,.7); box-shadow:0 0 0 8px rgba(255,90,107,.10); }
 
-  if (avgTimeEl) avgTimeEl.textContent = fmtMs(calcRollingAvgTime());
-  if (failRateEl) failRateEl.textContent = `${calcRollingFailRate().toFixed(1)}%`;
+
+.seq{
+margin-top:16px;
+font-size:20px;
+letter-spacing:6px;
+color:var(--muted);
+display:flex;
+gap:10px;
+justify-content:center;
+flex-wrap:wrap;
+}
+.seq .ch{
+padding:8px 10px;
+border-radius:12px;
+border:1px solid var(--line);
+background:rgba(0,0,0,.12);
+min-width:36px;
+text-align:center;
+font-weight:800;
+}
+.seq .cur{
+color:#0b1220;
+background:linear-gradient(180deg, #ffcf3a, var(--accent));
+border-color:transparent;
 }
 
-function renderHistory(){
-  if(!historyList) return;
-  if(!runHistory.length){
-    historyList.innerHTML = `<div class="run"><small>No runs yet</small></div>`;
-    return;
-  }
-  historyList.innerHTML = runHistory.slice(0,10).map(r => `
-    <div class="run">
-      <div>
-        <b>RUN #${r.runNo}</b> • <small>${r.keys}</small><br/>
-        <small>${new Date(r.when).toLocaleString()}</small>
-      </div>
-      <div style="text-align:right">
-        <b>${r.score}</b><br/>
-        <small>avg ${r.avgTimeLabel} • fail ${r.failRateLabel}</small>
-      </div>
-    </div>
-  `).join("");
+
+.history{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
+.historySummary{ text-align:center; padding:6px 0 12px; }
+.historySummary h2{
+margin:0 0 10px;
+font-size:28px;
+font-weight:900;
+letter-spacing:.3px;
 }
+.sumLine{ font-size:20px; font-weight:800; margin:6px 0; }
 
-function newSequence(){
-  const ks = keySet();
-  seq = Array.from({length: SEQ_LEN}, ()=> randomKey(ks));
-  seqIdx = 0;
-  updatePrompt();
+
+.historyList{
+display:grid;
+gap:8px;
+justify-items:center;
+padding-bottom:4px;
 }
-
-function startRun(){
-  total = 0;
-  correct = 0;
-  misses = 0;
-  hitTimes = [];
-  runStart = performance.now();
-
-  newSequence();
-  updateTopStats();
+.historyLine{
+font-size:18px;
+font-weight:800;
+letter-spacing:.2px;
 }
-
-function finishRun(){
-  const elapsed = (performance.now() - runStart) / 1000;
-  const kpm = elapsed > 0 ? Math.round((correct / elapsed) * 60) : 0;
-
-  const avgTimeMs = avg(hitTimes);
-  const failRate = total ? (misses / total) * 100 : 0;
-
-  const run = {
-    when: Date.now(),
-    runNo,
-    keys: keysSel.value,
-    correct,
-    total,
-    misses,
-    score: `${kpm} KPM`,
-    avgTimeMs,
-    avgTimeLabel: fmtMs(avgTimeMs),
-    failRateLabel: `${failRate.toFixed(1)}%`,
-  };
-
-  runHistory.unshift(run);
-  runHistory = runHistory.slice(0,10);
-  localStorage.setItem("runHistory", JSON.stringify(runHistory));
-  renderHistory();
-
-  runNo += 1;
-  updateTopStats();
-}
-
-function handleKey(e){
-  const k = String(e.key).toUpperCase();
-  if(!keySet().includes(k)) return;
-
-  total++;
-
-  const expected = seq[seqIdx];
-  if (k === expected){
-    correct++;
-    streak++;
-    hitTimes.push(performance.now() - shownAt);
-    flashBig("hit");
-
-    seqIdx++;
-    if (seqIdx >= seq.length){
-      finishRun();
-      startRun();
-      return;
-    }
-    updatePrompt();
-  } else {
-    streak = 0;
-    misses++;
-    flashBig("miss");
-    // tetap di expected yang sama
-  }
-
-  updateTopStats();
-}
-
-document.addEventListener("keydown", handleKey);
-
-keysSel.addEventListener("change", ()=> startRun());
-
-// init
-renderHistory();
-startRun();
+.historyLine .n{ color:var(--muted); font-weight:700; margin-right:8px; }
+.historyLine .kpm{ color:#3aa6ff; }
+.historyLine .avg{ color:var(--ok); }
+.historyLine .fail{ color:var(--bad); }
