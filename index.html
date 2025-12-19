@@ -4,17 +4,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>WASD/QERT Trainer</title>
-  <script src="./script.js?v=5" defer></script>
-  <link rel="stylesheet" href="./style.css?v=5" />
-
-
+  <link rel="stylesheet" href="./style.css?v=6" />
+  <script src="./script.js?v=6" defer></script>
 </head>
 <body>
   <main class="wrap">
     <header class="top">
       <div>
         <h1>WASD / QERT Trainer</h1>
-        <p class="sub">Tekan tombol yang muncul di tengah (dan yang disorot).</p>
+        <p class="sub">Ikuti urutan. Yang dihitung cuma input keyboard (nggak ada tap).</p>
       </div>
 
       <div class="stat">
@@ -39,25 +37,14 @@
       </div>
 
       <div class="prompt">
-        <div class="hint" id="hint">Pencet tombol yang disorot / yang tampil di tengah.</div>
-        <div class="big" id="big">W</div>
-        <div class="seq" id="seq"></div>
-      </div>
+        <div class="hint" id="hint">Tekan tombol yang tampil di tengah.</div>
 
-      <div class="kb">
-        <div class="keyrow">
-          <div class="k" data-k="Q">Q</div>
-          <div class="k" data-k="W">W</div>
-          <div class="k" data-k="E">E</div>
-          <div class="k" data-k="R">R</div>
-          <div class="k" data-k="T">T</div>
+        <div class="bigWrap">
+          <div class="big" id="big">W</div>
+          <div class="bigSub" id="bigSub">PRESS: W</div>
         </div>
-        <div class="keyrow">
-          <div class="k" data-k="A">A</div>
-          <div class="k" data-k="S">S</div>
-          <div class="k" data-k="D">D</div>
-        </div>
-        <p class="tip">Bisa pakai keyboard, atau tap/click tombol virtual di atas.</p>
+
+        <div class="seq" id="seq"></div>
       </div>
 
       <section class="history">
