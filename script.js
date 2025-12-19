@@ -157,3 +157,12 @@ speedVal.textContent = `${speed.value}ms`;
 hint.textContent = "Tekan Start untuk mulai.";
 nextSingle();
 stop();
+.history{margin-top:18px;border-top:1px solid var(--line);padding-top:18px}
+.history h2{margin:0 0 10px;font-size:16px;color:var(--muted);font-weight:700}
+.historyList{display:grid;gap:10px}
+.run{
+  display:flex;justify-content:space-between;gap:10px;
+  padding:12px 14px;border-radius:14px;border:1px solid var(--line);
+  background:rgba(0,0,0,.18)
+}
+.run small{color:var(--muted)}
