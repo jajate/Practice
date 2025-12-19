@@ -23,6 +23,7 @@
           <button class="btn modeBtn" type="button" data-mode="MEDIUM">MEDIUM</button>
           <button class="btn modeBtn" type="button" data-mode="HARD">HARD</button>
 
+          <button id="btnEditKey" class="btn" type="button">Edit Key</button>
           <button id="btnMute" class="btn" type="button" aria-pressed="false">Mute</button>
         </div>
       </header>
@@ -106,5 +107,75 @@
       </div>
     </section>
   </main>
+
+  <!-- EDIT KEY MODAL -->
+  <div id="keyModal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="keyModalTitle">
+    <div class="modalBackdrop" data-close="1"></div>
+
+    <div class="modalCard" role="document">
+      <div class="modalHeader">
+        <div>
+          <div id="keyModalTitle" class="modalTitle">EDIT KEY</div>
+          <div class="modalSub">Pilih key untuk 2 group (Basic & Addon) — bebas. Total picks harus sama dengan panjang sequence.</div>
+        </div>
+        <button id="btnKeyClose" class="btn" type="button" aria-label="Close">Close</button>
+      </div>
+
+      <div class="modalBody">
+        <div class="modalLeft">
+          <div class="tabs" role="tablist" aria-label="Group">
+            <button id="tabBasic" class="tab isActive" type="button" role="tab" aria-selected="true">BASIC</button>
+            <button id="tabAddon" class="tab" type="button" role="tab" aria-selected="false">ADDON</button>
+          </div>
+
+          <div class="kbd" aria-label="Virtual keyboard">
+            <!-- rows injected by JS -->
+            <div id="kbdRows"></div>
+            <div class="kbdHint">Klik key untuk toggle. SHIFT/CTRL/CAPS/ESC/ENTER/BACKSPACE/SPACE akan ditangkap sebagai tombol special.</div>
+          </div>
+        </div>
+
+        <aside class="modalRight" aria-label="Rules">
+          <div class="rightTitle">RULES</div>
+
+          <div class="rulesGrid">
+            <label class="numField">
+              <span>SEQ LEN</span>
+              <input id="inpSeqLen" type="number" min="1" max="20" step="1" />
+            </label>
+            <label class="numField">
+              <span>BASIC</span>
+              <input id="inpBasicCount" type="number" min="0" max="20" step="1" />
+            </label>
+            <label class="numField">
+              <span>ADDON</span>
+              <input id="inpAddonCount" type="number" min="0" max="20" step="1" />
+            </label>
+          </div>
+
+          <label class="toggleRow">
+            <span>ALLOW DUPLICATES</span>
+            <button id="btnDupToggle" class="toggle" type="button" aria-pressed="true">
+              <span class="toggleKnob"></span>
+              <span class="toggleText">ON</span>
+            </button>
+          </label>
+
+          <div class="selBox">
+            <div class="selTitle">SELECTED</div>
+            <div class="selLine">BASIC: <b id="selBasic">0</b> keys</div>
+            <div class="selLine">ADDON: <b id="selAddon">0</b> keys</div>
+            <div id="keyModalError" class="error" aria-live="polite"></div>
+          </div>
+
+          <div class="modalActions">
+            <button id="btnKeyReset" class="btn" type="button">Reset</button>
+            <button id="btnKeyCancel" class="btn" type="button">Cancel</button>
+            <button id="btnKeySave" class="btn btnPrimary" type="button">Save</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
