@@ -87,10 +87,10 @@
   // =========================
   /** @type {'EASY'|'MEDIUM'|'HARD'} */
   let mode = (localStorage.getItem("mode") || "EASY").toUpperCase();
-  if (!['EASY','MEDIUM','HARD'].includes(mode)) mode = 'EASY';
+  if (!["EASY", "MEDIUM", "HARD"].includes(mode)) mode = "EASY";
 
   /** @type {'IDLE'|'COUNTDOWN'|'PLAYING'|'FINISHED'} */
-  let state = 'IDLE';
+  let state = "IDLE";
 
   // current sequence
   let target = "";
@@ -98,20 +98,31 @@
   let failCount = 0;
   let seqStartMs = 0; // TIME mulai saat sequence muncul
 
+  // INPUT log tokens (warna biru untuk benar, merah untuk fail)
+  /** @type {{ch:string, ok:boolean}[]} */
+  let inputTokens = [];
+
+  // wrong flash
+  let wrongFlashActive = false;
+
   // rounds
   let round = 1; // 1-based
 
   // histories
-  /** @type {{round:number, mode:'EASY'|'MEDIUM'|'HARD', kpm:number, timeMs:number, fail:number, status:'BAD'|'GOOD'|'PERFECT'}[]} */
+  /** @type {{round:number, mode:'EASY'|'MEDIUM'|'HARD', kpm:number, timeMs:number, fail:number, status:'BAD'|'GOOD'|'PERFECT', inputTokens:{ch:string,ok:boolean}[]}[]} */
   let easyHistory = [];
-  /** @type {{round:number, mode:'EASY'|'MEDIUM'|'HARD', kpm:number, timeMs:number, fail:number, status:'BAD'|'GOOD'|'PERFECT'}[]} */
+  /** @type {{round:number, mode:'EASY'|'MEDIUM'|'HARD', kpm:number, timeMs:number, fail:number, status:'BAD'|'GOOD'|'PERFECT', inputTokens:{ch:string,ok:boolean}[]}[]} */
   let sessionHistory = [];
 
   // session points (MEDIUM/HARD)
   let sessionPoints = 0;
 
-  function nowMs() { return Date.now(); }
-  function limitMs() { return LIMIT_MS[mode]; }
+  function nowMs() {
+    return Date.now();
+  }
+  function limitMs() {
+    return LIMIT_MS[mode];
+  }
 
   function generateSequence() {
     const out = [];
@@ -143,6 +154,7 @@
 
       if (i < idx) cls.push("done", "ok");
       if (i === idx) cls.push("current");
+      if (i === idx && wrongFlashActive) cls.push("wrong");
 
       const display = isSpace
         ? `<span class="spaceIcon" aria-hidden="true">⎵</span><span class="srOnly">Space</span>`
@@ -168,18 +180,42 @@
     el.kpmText.textContent = String(calcKpm(idx, ms));
     el.failText.textContent = String(failCount);
 
-    if (mode === 'EASY') {
+    if (mode === "EASY") {
       el.roundText.textContent = `${round}/∞`;
     } else {
       el.roundText.textContent = `${round}/${SESSION_ROUNDS}`;
     }
 
-    el.srLive.textContent =
-      `Mode ${mode}. Round ${el.roundText.textContent}. Time ${(ms/1000).toFixed(2)}. KPM ${calcKpm(idx, ms)}. Fail ${failCount}.`;
+    el.srLive.textContent = `Mode ${mode}. Round ${el.roundText.textContent}. Time ${(ms / 1000).toFixed(2)}. KPM ${calcKpm(idx, ms)}. Fail ${failCount}.`;
   }
 
   function activeHistory() {
-    return mode === 'EASY' ? easyHistory : sessionHistory;
+    return mode === "EASY" ? easyHistory : sessionHistory;
+  }
+
+  function renderInput(tokens) {
+    // ok => biru, fail => merah dalam kurung merah
+    // space fail => ( ) menggunakan NBSP agar terlihat
+    return tokens
+      .map((t) => {
+        if (t.ok) {
+          const ch = t.ch === " " ? " " : escapeHtml(t.ch);
+          return `<span class="inOk">${ch}</span>`;
+        }
+        const inner = t.ch === " " ? "&nbsp;" : escapeHtml(t.ch);
+        return `<span class="inFailGroup">(${inner})</span>`;
+      })
+      .join("");
+  }
+
+  function modeBadge(m) {
+    const cls = m === "EASY" ? "mode-easy" : m === "MEDIUM" ? "mode-medium" : "mode-hard";
+    return `<span class="badge ${cls}">${m}</span>`;
+  }
+
+  function statusBadge(s) {
+    const cls = s === "BAD" ? "status-bad" : s === "GOOD" ? "status-good" : "status-perfect";
+    return `<span class="badge ${cls}">${s}</span>`;
   }
 
   function renderScores() {
@@ -213,22 +249,26 @@
         return `
           <tr>
             <td>#${r.round}</td>
-            <td>${r.mode}</td>
+            <td>${modeBadge(r.mode)}</td>
             <td class="num">${r.kpm}</td>
             <td class="num">${(r.timeMs / 1000).toFixed(2)}s</td>
             <td class="num">${r.fail}</td>
-            <td>${r.status}</td>
+            <td>${statusBadge(r.status)}</td>
+            <td class="inputCell" title="${escapeHtml(r.inputTokens.map(t=>t.ch).join(''))}">${renderInput(r.inputTokens)}</td>
           </tr>
         `;
       })
       .join("");
   }
 
-  function setBoardMessage({ title, sub = "", showStart = false, showPlayAgain = false }) {
+  function setBoardMessage({ title, sub = "", showStart = false, showPlayAgain = false, stateKey = "idle", tone = "" }) {
     el.boardMessageTitle.textContent = title;
-    el.boardMessageSub.textContent = sub;
+    el.boardMessageSub.innerHTML = sub;
     el.btnStart.hidden = !showStart;
     el.btnPlayAgain.hidden = !showPlayAgain;
+    el.boardMessage.dataset.state = stateKey;
+    if (tone) el.boardMessage.dataset.tone = tone;
+    else delete el.boardMessage.dataset.tone;
     el.boardMessage.hidden = false;
   }
 
@@ -237,67 +277,76 @@
   }
 
   function pointsForStatus(status) {
-    if (status === 'PERFECT') return 1;
-    if (status === 'GOOD') return 0.5;
+    if (status === "PERFECT") return 1;
+    if (status === "GOOD") return 0.5;
     return 0;
   }
 
   function statusForRound({ timeSec, fail, timeout }) {
-    if (timeout) return 'BAD';
+    if (timeout) return "BAD";
 
-    if (mode === 'EASY') {
-      if (timeSec < 4 && fail === 0) return 'PERFECT';
-      if (timeSec >= 10 || fail >= 4) return 'BAD';
-      return 'GOOD';
+    if (mode === "EASY") {
+      if (timeSec < 4 && fail === 0) return "PERFECT";
+      if (timeSec >= 10 || fail >= 4) return "BAD";
+      return "GOOD";
     }
 
-    if (mode === 'MEDIUM') {
-      if (timeSec < 3 && fail === 0) return 'PERFECT';
-      if (fail >= 3) return 'BAD';
-      return 'GOOD';
+    if (mode === "MEDIUM") {
+      if (timeSec < 3 && fail === 0) return "PERFECT";
+      if (fail >= 3) return "BAD";
+      return "GOOD";
     }
 
     // HARD
-    if (timeSec < 1.5 && fail === 0) return 'PERFECT';
-    if (fail >= 1) return 'BAD';
-    return 'GOOD';
+    if (timeSec < 1.5 && fail === 0) return "PERFECT";
+    if (fail >= 1) return "BAD";
+    return "GOOD";
   }
 
   function resetSequence() {
     target = generateSequence();
     idx = 0;
     failCount = 0;
+    inputTokens = [];
+    wrongFlashActive = false;
     seqStartMs = nowMs(); // TIME mulai saat sequence muncul
     renderBoard();
     renderHud();
   }
 
   async function countdownThenStart() {
-    state = 'COUNTDOWN';
+    state = "COUNTDOWN";
 
-    setBoardMessage({ title: 'Get Ready!', sub: '2', showStart: false, showPlayAgain: false });
-    await sleep(READY_MS / 2);
-    // "2" -> "1"
-    setBoardMessage({ title: 'Get Ready!', sub: '1', showStart: false, showPlayAgain: false });
+    setBoardMessage({ title: "Get Ready!", sub: "2", showStart: false, showPlayAgain: false, stateKey: "countdown" });
     await sleep(READY_MS / 2);
 
-    setBoardMessage({ title: 'GO!!!', sub: '', showStart: false, showPlayAgain: false });
+    setBoardMessage({ title: "Get Ready!", sub: "1", showStart: false, showPlayAgain: false, stateKey: "countdown" });
+    await sleep(READY_MS / 2);
+
+    setBoardMessage({ title: "GO!!!", sub: "", showStart: false, showPlayAgain: false, stateKey: "countdown" });
     beep(880, 120, 0.05);
     await sleep(GO_MS);
 
     hideBoardMessage();
-    state = 'PLAYING';
+    state = "PLAYING";
     resetSequence();
   }
 
   function finishSession() {
-    state = 'FINISHED';
-    // tampilkan skor 0-10
+    state = "FINISHED";
+
+    // tone: <5 red, ==10 orange, else green
+    let tone = "green";
+    if (sessionPoints < 5) tone = "red";
+    if (Math.abs(sessionPoints - SESSION_ROUNDS) < 1e-9) tone = "orange";
+
     setBoardMessage({
-      title: `Session Complete`,
+      title: "Session Complete",
       sub: `Score: ${sessionPoints.toFixed(1)} / ${SESSION_ROUNDS}`,
       showStart: false,
       showPlayAgain: true,
+      stateKey: "finished",
+      tone,
     });
   }
 
@@ -319,9 +368,10 @@
       timeMs,
       fail: failCount,
       status,
+      inputTokens: inputTokens.slice(0),
     };
 
-    if (mode === 'EASY') {
+    if (mode === "EASY") {
       easyHistory.unshift(rec);
       easyHistory = easyHistory.slice(0, 10);
     } else {
@@ -334,7 +384,7 @@
   }
 
   function advanceRoundAfterFinish() {
-    if (mode === 'EASY') {
+    if (mode === "EASY") {
       round += 1;
       resetSequence();
       return;
@@ -355,13 +405,23 @@
   }
 
   function onTimeout() {
-    // time dicap ke limit & status BAD
     recordRound({ timeout: true });
     advanceRoundAfterFinish();
   }
 
   function canAcceptInput() {
-    return state === 'PLAYING';
+    return state === "PLAYING";
+  }
+
+  function flashWrongTile() {
+    wrongFlashActive = true;
+    renderBoard();
+    setTimeout(() => {
+      // hanya clear kalau masih di state bermain
+      if (state !== "PLAYING") return;
+      wrongFlashActive = false;
+      renderBoard();
+    }, 260);
   }
 
   function onKeyDown(e) {
@@ -370,17 +430,21 @@
     }
 
     if (!canAcceptInput()) return;
-
     if (!e.key || e.key.length !== 1) return;
 
-    const pressed = e.key.toUpperCase();
+    const pressedRaw = e.key;
+    const pressed = pressedRaw.toUpperCase();
     const expected = (target[idx] || "").toUpperCase();
     if (!expected) return;
 
-    if (pressed === expected) {
+    const ok = pressed === expected;
+
+    // log input token (space disimpan sebagai ' ')
+    inputTokens.push({ ch: pressedRaw === " " ? " " : pressed, ok });
+
+    if (ok) {
       idx += 1;
       beep(520, 35, 0.035);
-
       if (idx >= target.length) {
         onSuccess();
         return;
@@ -388,6 +452,7 @@
     } else {
       failCount += 1;
       beep(160, 70, 0.04);
+      flashWrongTile();
     }
 
     renderBoard();
@@ -395,7 +460,7 @@
   }
 
   function tick() {
-    if (state === 'PLAYING') {
+    if (state === "PLAYING") {
       const lim = limitMs();
       if (Number.isFinite(lim) && elapsedMs() >= lim) {
         onTimeout();
@@ -409,19 +474,20 @@
   function updateModeButtons() {
     // tampilkan hanya 2 mode lain
     el.modeBtns.forEach((b) => {
-      const m = String(b.dataset.mode || '').toUpperCase();
-      b.hidden = (m === mode);
+      const m = String(b.dataset.mode || "").toUpperCase();
+      b.hidden = m === mode;
     });
   }
 
   function hardResetForMode(newMode) {
     mode = newMode;
-    localStorage.setItem('mode', mode);
+    localStorage.setItem("mode", mode);
 
     // reset state
     round = 1;
     idx = 0;
     failCount = 0;
+    inputTokens = [];
 
     sessionHistory = [];
     sessionPoints = 0;
@@ -429,14 +495,14 @@
     updateModeButtons();
     renderScores();
 
-    if (mode === 'EASY') {
-      state = 'PLAYING';
+    if (mode === "EASY") {
+      state = "PLAYING";
       hideBoardMessage();
       resetSequence();
     } else {
-      state = 'IDLE';
-      el.board.innerHTML = '';
-      setBoardMessage({ title: 'Ready?', sub: `${mode} • ${SESSION_ROUNDS} rounds`, showStart: true, showPlayAgain: false });
+      state = "IDLE";
+      el.board.innerHTML = "";
+      setBoardMessage({ title: "Ready?", sub: `${mode} • ${SESSION_ROUNDS} rounds`, showStart: true, showPlayAgain: false, stateKey: "idle" });
       renderHud();
     }
   }
@@ -449,9 +515,9 @@
   // UI events
   // =========================
   el.modeBtns.forEach((b) => {
-    b.addEventListener('click', () => {
-      const m = String(b.dataset.mode || '').toUpperCase();
-      if (!['EASY','MEDIUM','HARD'].includes(m)) return;
+    b.addEventListener("click", () => {
+      const m = String(b.dataset.mode || "").toUpperCase();
+      if (!["EASY", "MEDIUM", "HARD"].includes(m)) return;
       hardResetForMode(m);
     });
   });
@@ -463,13 +529,13 @@
     el.btnMute.textContent = muted ? "Unmute" : "Mute";
   });
 
-  el.btnStart.addEventListener('click', () => {
-    if (state !== 'IDLE') return;
+  el.btnStart.addEventListener("click", () => {
+    if (state !== "IDLE") return;
     countdownThenStart();
   });
 
-  el.btnPlayAgain.addEventListener('click', () => {
-    if (state !== 'FINISHED') return;
+  el.btnPlayAgain.addEventListener("click", () => {
+    if (state !== "FINISHED") return;
     // langsung countdown (tanpa start)
     round = 1;
     sessionHistory = [];
