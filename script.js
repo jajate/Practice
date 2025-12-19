@@ -1,263 +1,87 @@
-const big = document.getElementById("big");
-const seqEl = document.getElementById("seq");
-const hint = document.getElementById("hint");
-const startBtn = document.getElementById("start");
-const stopBtn = document.getElementById("stop");
-const modeSel = document.getElementById("mode");
-const keysSel = document.getElementById("keys");
-const speed = document.getElementById("speed");
-const speedVal = document.getElementById("speedVal");
+:root{
+--bg:#0b1220; --panel:#0f1a2c; --text:#eef2ff; --muted:#aab3c5;
+--accent:#ffbf00; --ok:#35d07f; --bad:#ff5a6b; --line:rgba(255,255,255,.08);
+}
+*{box-sizing:border-box}
+body{
+margin:0;
+font-family:system-ui,Segoe UI,Roboto,Arial;
+background:radial-gradient(900px 600px at 20% 0%, #152747, var(--bg));
+color:var(--text);
+}
+.wrap{max-width:980px;margin:0 auto;padding:28px}
+.top{display:flex;gap:18px;justify-content:space-between;align-items:flex-start}
+h1{margin:0;font-size:28px;letter-spacing:.4px}
+.sub{margin:6px 0 0;color:var(--muted)}
 
-const streakEl = document.getElementById("streak");
-const accEl = document.getElementById("acc");
-const levelVal = document.getElementById("levelVal");
-const avgTimeEl = document.getElementById("avgTime");
-const failRateEl = document.getElementById("failRate");
-const historyList = document.getElementById("historyList");
 
-let startTime = 0;
-let shownAt = 0;
-let misses = 0;
-let hitTimes = [];
-let runHistory = JSON.parse(localStorage.getItem("runHistory") || "[]");
+.stat{
+display:flex;
+flex-wrap:wrap;
+gap:14px;
+background:rgba(0,0,0,.25);
+border:1px solid var(--line);
+padding:12px 14px;
+border-radius:14px;
+}
+.stat span{color:var(--muted);margin-right:6px}
 
-let running = false;
-let target = "W";
-let seq = [];
-let seqIdx = 0;
 
-let total = 0;
-let correct = 0;
-let streak = 0;
-let level = 1;
-let tickHandle = null;
-
-function keySet() {
-  const v = keysSel.value;
-  if (v === "wasd") return ["W","A","S","D"];
-  if (v === "wasdqe") return ["W","A","S","D","Q","E"];
-  return ["W","A","S","D","Q","E","R","T"];
+.panel{
+margin-top:18px;
+background:rgba(10,16,25,.65);
+border:1px solid var(--line);
+border-radius:18px;
+padding:18px;
+}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+label{color:var(--muted);font-size:13px;margin-right:4px}
+select,input[type=range]{
+border-radius:12px;border:1px solid var(--line);background:#0b1426;color:var(--text);
+padding:10px 12px;font-size:14px
+}
+input[type=range]{padding:10px 0; width:220px}
+#speedVal{color:var(--muted)}
+.pill{
+margin-left:auto;
+background:rgba(0,0,0,.25);
+border:1px solid var(--line);
+padding:10px 12px;
+border-radius:999px;
+color:var(--muted);
 }
 
-function randomKey(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-function setHighlight(k){
-  document.querySelectorAll(".k").forEach(el=>{
-    el.classList.toggle("on", el.dataset.k === k);
-  });
+.prompt{margin-top:18px;border-top:1px solid var(--line);padding-top:18px;text-align:center}
+.hint{color:var(--muted);margin-bottom:10px}
+.big{font-size:120px;font-weight:900;letter-spacing:6px;line-height:1}
+.seq{margin-top:14px;font-size:22px;letter-spacing:6px;color:var(--muted)}
+
+
+.kb{margin-top:18px;border-top:1px solid var(--line);padding-top:18px}
+.keyrow{display:flex;justify-content:center;gap:10px;margin:10px 0}
+.k{
+width:64px;height:54px;border-radius:14px;border:1px solid var(--line);
+display:flex;align-items:center;justify-content:center;font-weight:800;background:#0b1426
 }
+.k.on{outline:2px solid rgba(255,191,0,.9);box-shadow:0 0 0 6px rgba(255,191,0,.12)}
+.k.hit{background:rgba(53,208,127,.22);border-color:rgba(53,208,127,.6)}
+.k.miss{background:rgba(255,90,107,.18);border-color:rgba(255,90,107,.6)}
+.tip{margin:10px 0 0;color:var(--muted);text-align:center;font-size:13px}
 
-function flashKey(k, cls){
-  const el = document.querySelector(`.k[data-k="${k}"]`);
-  if(!el) return;
-  el.classList.add(cls);
-  setTimeout(()=>el.classList.remove(cls), 220);
+
+.history{margin-top:18px;border-top:1px solid var(--line);padding-top:18px}
+.history h2{margin:0 0 10px;font-size:16px;color:var(--muted);font-weight:700}
+.historyList{display:grid;gap:10px}
+.run{
+display:flex;
+flex-wrap:wrap;
+justify-content:space-between;
+align-items:flex-start;
+gap:10px;
+padding:12px 14px;
+border-radius:14px;
+border:1px solid var(--line);
+background:rgba(0,0,0,.18)
 }
-
-/* ===== metrics helpers (MUST be outside handleKey) ===== */
-function fmtMs(ms){
-  if (!Number.isFinite(ms)) return "-";
-  return ms < 1000 ? `${Math.round(ms)}ms` : `${(ms/1000).toFixed(2)}s`;
-}
-
-function calcAvgTime(){
-  if (!hitTimes.length) return NaN;
-  return hitTimes.reduce((a,b)=>a+b,0) / hitTimes.length;
-}
-
-function calcFailRate(){
-  return total ? (misses / total) * 100 : 0;
-}
-
-function renderHistory(){
-  if(!historyList) return;
-  if(!runHistory.length){
-    historyList.innerHTML = `<div class="run"><small>No runs yet</small></div>`;
-    return;
-  }
-  historyList.innerHTML = runHistory
-    .slice(0,10)
-    .map(r => `
-      <div class="run">
-        <div>
-          <b>${r.mode.toUpperCase()}</b> • <small>${r.keys}</small><br/>
-          <small>${new Date(r.when).toLocaleString()}</small>
-        </div>
-        <div style="text-align:right">
-          <b>${r.score}</b><br/>
-          <small>avg ${r.avgTime} • fail ${r.failRate}</small>
-        </div>
-      </div>
-    `).join("");
-}
-/* ======================================================= */
-
-function updateStats(){
-  streakEl.textContent = String(streak);
-  const a = total ? Math.round((correct/total)*100) : 100;
-  accEl.textContent = `${a}%`;
-  levelVal.textContent = String(level);
-
-  if (avgTimeEl) avgTimeEl.textContent = fmtMs(calcAvgTime());
-  if (failRateEl) failRateEl.textContent = `${calcFailRate().toFixed(1)}%`;
-}
-
-function nextSingle(){
-  const ks = keySet();
-  target = randomKey(ks);
-  big.textContent = target;
-  seqEl.textContent = "";
-  hint.textContent = "Tekan tombol yang muncul.";
-  setHighlight(target);
-  shownAt = performance.now();
-}
-
-function buildSequence(){
-  const ks = keySet();
-  const len = Math.min(3 + level, 10);
-  seq = Array.from({length: len}, ()=> randomKey(ks));
-  seqIdx = 0;
-  seqEl.textContent = seq.join(" ");
-  big.textContent = seq[0];
-  hint.textContent = "Ikuti urutan (sequence) sampai habis.";
-  setHighlight(seq[0]);
-  shownAt = performance.now();
-}
-
-function bumpLevel(){
-  if (streak > 0 && streak % 15 === 0) level++;
-}
-
-function start(){
-  running = true;
-
-  total = 0;
-  correct = 0;
-  streak = 0;
-  level = 1;
-
-  misses = 0;
-  hitTimes = [];
-  startTime = performance.now();
-
-  updateStats();
-
-  if (modeSel.value === "sequence") buildSequence();
-  else nextSingle();
-
-  const doTick = () => {
-    if(!running) return;
-
-    // auto-miss untuk mode single kalau kelamaan
-    if (modeSel.value === "single") {
-      total++;
-      misses++;
-      streak = 0;
-      updateStats();
-      flashKey(target, "miss");
-      nextSingle();
-    }
-    tickHandle = setTimeout(doTick, Number(speed.value));
-  };
-
-  tickHandle = setTimeout(doTick, Number(speed.value));
-}
-
-function stop(){
-  if (!running) return;
-  running = false;
-
-  if (tickHandle) clearTimeout(tickHandle);
-  tickHandle = null;
-
-  // save run summary
-  const elapsed = (performance.now() - startTime) / 1000;
-  const kpm = elapsed > 0 ? Math.round((correct / elapsed) * 60) : 0;
-
-  const run = {
-    when: Date.now(),
-    mode: modeSel.value,
-    keys: keysSel.value,
-    correct,
-    total,
-    misses,
-    score: `${kpm} KPM`,
-    avgTime: fmtMs(calcAvgTime()),
-    failRate: `${calcFailRate().toFixed(1)}%`,
-  };
-
-  runHistory.unshift(run);
-  runHistory = runHistory.slice(0,10);
-  localStorage.setItem("runHistory", JSON.stringify(runHistory));
-  renderHistory();
-
-  hint.textContent = "Tekan Start untuk mulai.";
-  setHighlight("");
-}
-
-function handleKey(e){
-  if(!running) return;
-
-  const k = e.key.toUpperCase();
-  if(!keySet().includes(k)) return;
-
-  total++;
-
-  if (modeSel.value === "single") {
-    if (k === target){
-      correct++;
-      streak++;
-      bumpLevel();
-
-      hitTimes.push(performance.now() - shownAt);
-      flashKey(k, "hit");
-      nextSingle();
-    } else {
-      streak = 0;
-      misses++;
-      flashKey(k, "miss");
-      // keep same target
-    }
-    updateStats();
-    return;
-  }
-
-  // sequence mode
-  const expected = seq[seqIdx];
-  if (k === expected){
-    correct++;
-    streak++;
-    bumpLevel();
-
-    hitTimes.push(performance.now() - shownAt);
-    flashKey(k, "hit");
-
-    seqIdx++;
-    if (seqIdx >= seq.length){
-      buildSequence();
-    } else {
-      big.textContent = seq[seqIdx];
-      setHighlight(seq[seqIdx]);
-      shownAt = performance.now();
-    }
-  } else {
-    streak = 0;
-    misses++;
-    flashKey(k, "miss");
-  }
-
-  updateStats();
-}
-
-/* events */
-speed.addEventListener("input", ()=> speedVal.textContent = `${speed.value}ms`);
-startBtn.addEventListener("click", ()=> { if(!running) start(); });
-stopBtn.addEventListener("click", stop);
-document.addEventListener("keydown", handleKey);
-
-/* init */
-speedVal.textContent = `${speed.value}ms`;
-hint.textContent = "Tekan Start untuk mulai.";
-renderHistory();
-stop();     // ensure stopped state
-nextSingle();
+.run small{color:var(--muted)}
