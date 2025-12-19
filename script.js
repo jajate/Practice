@@ -1,87 +1,119 @@
-:root{
---bg:#0b1220; --panel:#0f1a2c; --text:#eef2ff; --muted:#aab3c5;
---accent:#ffbf00; --ok:#35d07f; --bad:#ff5a6b; --line:rgba(255,255,255,.08);
-}
-*{box-sizing:border-box}
-body{
-margin:0;
-font-family:system-ui,Segoe UI,Roboto,Arial;
-background:radial-gradient(900px 600px at 20% 0%, #152747, var(--bg));
-color:var(--text);
-}
-.wrap{max-width:980px;margin:0 auto;padding:28px}
-.top{display:flex;gap:18px;justify-content:space-between;align-items:flex-start}
-h1{margin:0;font-size:28px;letter-spacing:.4px}
-.sub{margin:6px 0 0;color:var(--muted)}
+const big = document.getElementById("big");
 
 
-.stat{
-display:flex;
-flex-wrap:wrap;
-gap:14px;
-background:rgba(0,0,0,.25);
-border:1px solid var(--line);
-padding:12px 14px;
-border-radius:14px;
-}
-.stat span{color:var(--muted);margin-right:6px}
+seqEl.textContent = seq.join(" ");
+big.textContent = seq[0];
+hint.textContent = "Ikuti urutan sampai habis.";
+setHighlight(seq[0]);
 
 
-.panel{
-margin-top:18px;
-background:rgba(10,16,25,.65);
-border:1px solid var(--line);
-border-radius:18px;
-padding:18px;
-}
-.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-label{color:var(--muted);font-size:13px;margin-right:4px}
-select,input[type=range]{
-border-radius:12px;border:1px solid var(--line);background:#0b1426;color:var(--text);
-padding:10px 12px;font-size:14px
-}
-input[type=range]{padding:10px 0; width:220px}
-#speedVal{color:var(--muted)}
-.pill{
-margin-left:auto;
-background:rgba(0,0,0,.25);
-border:1px solid var(--line);
-padding:10px 12px;
-border-radius:999px;
-color:var(--muted);
+shownAt = performance.now();
 }
 
 
-.prompt{margin-top:18px;border-top:1px solid var(--line);padding-top:18px;text-align:center}
-.hint{color:var(--muted);margin-bottom:10px}
-.big{font-size:120px;font-weight:900;letter-spacing:6px;line-height:1}
-.seq{margin-top:14px;font-size:22px;letter-spacing:6px;color:var(--muted)}
+function startRun(){
+total = 0;
+correct = 0;
+misses = 0;
+hitTimes = [];
+runStart = performance.now();
 
 
-.kb{margin-top:18px;border-top:1px solid var(--line);padding-top:18px}
-.keyrow{display:flex;justify-content:center;gap:10px;margin:10px 0}
-.k{
-width:64px;height:54px;border-radius:14px;border:1px solid var(--line);
-display:flex;align-items:center;justify-content:center;font-weight:800;background:#0b1426
+newSequence();
+updateTopStats();
 }
-.k.on{outline:2px solid rgba(255,191,0,.9);box-shadow:0 0 0 6px rgba(255,191,0,.12)}
-.k.hit{background:rgba(53,208,127,.22);border-color:rgba(53,208,127,.6)}
-.k.miss{background:rgba(255,90,107,.18);border-color:rgba(255,90,107,.6)}
-.tip{margin:10px 0 0;color:var(--muted);text-align:center;font-size:13px}
 
 
-.history{margin-top:18px;border-top:1px solid var(--line);padding-top:18px}
-.history h2{margin:0 0 10px;font-size:16px;color:var(--muted);font-weight:700}
-.historyList{display:grid;gap:10px}
-.run{
-display:flex;
-flex-wrap:wrap;
-justify-content:space-between;
-align-items:flex-start;
-gap:10px;
-padding:12px 14px;
-border-radius:14px;
-border:1px solid var(--line);
-background:rgba(0,0,0,.18)
+function finishRun(){
+const elapsed = (performance.now() - runStart) / 1000;
+const kpm = elapsed > 0 ? Math.round((correct / elapsed) * 60) : 0;
+
+
+const avgTimeMs = avg(hitTimes);
+const failRate = total ? (misses / total) * 100 : 0;
+
+
+const run = {
+when: Date.now(),
+runNo,
+keys: keysSel.value,
+correct,
+total,
+misses,
+score: `${kpm} KPM`,
+avgTimeMs,
+avgTimeLabel: fmtMs(avgTimeMs),
+failRateLabel: `${failRate.toFixed(1)}%`,
+};
+
+
+runHistory.unshift(run);
+runHistory = runHistory.slice(0,10);
+localStorage.setItem("runHistory", JSON.stringify(runHistory));
+renderHistory();
+
+
+runNo += 1;
+updateTopStats();
 }
-.run small{color:var(--muted)}
+
+
+function handleKey(e){
+if(!running) return;
+
+
+const k = e.key.toUpperCase();
+if(!keySet().includes(k)) return;
+
+
+total++;
+
+
+const expected = seq[seqIdx];
+if (k === expected){
+correct++;
+streak++;
+
+
+hitTimes.push(performance.now() - shownAt);
+flashKey(k, "hit");
+
+
+seqIdx++;
+if (seqIdx >= seq.length){
+finishRun();
+startRun();
+return;
+} else {
+big.textContent = seq[seqIdx];
+setHighlight(seq[seqIdx]);
+shownAt = performance.now();
+}
+} else {
+streak = 0;
+misses++;
+flashKey(k, "miss");
+}
+
+
+updateTopStats();
+}
+
+
+speed.addEventListener("input", ()=> {
+speedVal.textContent = `${speed.value}ms`;
+});
+
+
+keysSel.addEventListener("change", ()=> {
+startRun();
+});
+
+
+document.addEventListener("keydown", handleKey);
+
+
+// init
+speedVal.textContent = `${speed.value}ms`;
+renderHistory();
+startRun();
