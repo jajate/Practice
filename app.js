@@ -708,7 +708,7 @@
       ],
     },
     {
-      cls: "kbdRow",
+      cls: "kbdRow offsetQ",
       keys: [
         ..."QWERTYUIOP".split("").map((k) => ({ id: k, label: k })),
         { id: "[", label: "[" },
