@@ -1,26 +1,29 @@
 (() => {
-  // ==== Boot diagnostics & safe reset (fix "UI tampil tapi tidak bisa klik" jika JS crash / storage korup) ====
+  // =====================================================
+  // Boot diagnostics & safe reset
+  // =====================================================
   const QS = new URLSearchParams(location.search);
-  const CFG_KEY_BOOT = "jajate_keycfg_v2";
-  const STORAGE_KEYS = [CFG_KEY_BOOT, "muted", "mode"]; // hapus hanya key kita
+  const CFG_KEY = "jajate_keycfg_v2";
+  const STORAGE_KEYS = [CFG_KEY, "muted", "mode"];
 
   function purgeStorage() {
-    try { STORAGE_KEYS.forEach((k) => localStorage.removeItem(k)); } catch {}
+    try {
+      STORAGE_KEYS.forEach((k) => localStorage.removeItem(k));
+    } catch {}
   }
 
   // Buka: /Practice/?reset=1 untuk reset config jika ada data lama yang bikin error
-  if (QS.has("reset")) {
-    purgeStorage();
-  }
+  if (QS.has("reset")) purgeStorage();
 
   function showFatal(err) {
-    const msg = (err && (err.stack || err.message)) ? String(err.stack || err.message) : String(err);
-    // coba tampilkan ke overlay boardMessage kalau ada
+    const msg = err && (err.stack || err.message) ? String(err.stack || err.message) : String(err);
+
     const boardMsg = document.getElementById("boardMessage");
     const title = document.getElementById("boardMessageTitle");
     const sub = document.getElementById("boardMessageSub");
     const btnStart = document.getElementById("btnStart");
     const btnPlayAgain = document.getElementById("btnPlayAgain");
+
     if (boardMsg && title && sub) {
       title.textContent = "Error (JS crash)";
       sub.textContent = msg.slice(0, 400);
@@ -29,27 +32,85 @@
       boardMsg.hidden = false;
       boardMsg.dataset.state = "error";
       boardMsg.dataset.tone = "red";
-    } else {
-      // fallback
-      alert("Error (JS crash):
-" + msg);
+      return;
     }
+
+    // fallback
+    alert("Error (JS crash):
+" + msg);
   }
 
   window.addEventListener("error", (e) => showFatal(e.error || e.message || e));
   window.addEventListener("unhandledrejection", (e) => showFatal(e.reason || e));
 
-  // NOTE: beberapa laptop/PC (bahkan tanpa touchscreen) bisa melaporkan maxTouchPoints > 0.
-// Jadi: kita tampilkan warning untuk perangkat "mobile-like", tapi TIDAK mematikan game.
-const isMobileLike =
-  (window.matchMedia && window.matchMedia("(pointer: coarse) and (hover: none)").matches) ||
-  /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "") ||
-  window.innerWidth < 820;
+  // =====================================================
+  // DOM refs (wajib ada dulu sebelum pakai `el`)
+  // =====================================================
+  const el = {
+    main: document.getElementById("main"),
+    board: document.getElementById("board"),
+    mobileBlock: document.getElementById("mobileBlock"),
 
-if (isMobileLike) {
-  el.mobileBlock.hidden = false;
-}
+    timeText: document.getElementById("timeText"),
+    kpmText: document.getElementById("kpmText"),
+    failText: document.getElementById("failText"),
+    roundText: document.getElementById("roundText"),
 
+    avgKpm: document.getElementById("avgKpm"),
+    avgTime: document.getElementById("avgTime"),
+    avgFailRate: document.getElementById("avgFailRate"),
+    historyBody: document.getElementById("historyBody"),
+
+    btnMute: document.getElementById("btnMute"),
+    btnEditKey: document.getElementById("btnEditKey"),
+    modeBtns: Array.from(document.querySelectorAll(".modeBtn")),
+
+    boardMessage: document.getElementById("boardMessage"),
+    boardMessageTitle: document.getElementById("boardMessageTitle"),
+    boardMessageSub: document.getElementById("boardMessageSub"),
+    btnStart: document.getElementById("btnStart"),
+    btnPlayAgain: document.getElementById("btnPlayAgain"),
+
+    srLive: document.getElementById("srLive"),
+
+    // modal
+    keyModal: document.getElementById("keyModal"),
+    kbdRows: document.getElementById("kbdRows"),
+    tabBasic: document.getElementById("tabBasic"),
+    tabAddon: document.getElementById("tabAddon"),
+    btnKeyClose: document.getElementById("btnKeyClose"),
+    btnKeyReset: document.getElementById("btnKeyReset"),
+    btnKeyCancel: document.getElementById("btnKeyCancel"),
+    btnKeySave: document.getElementById("btnKeySave"),
+    keyModalError: document.getElementById("keyModalError"),
+    selBasic: document.getElementById("selBasic"),
+    selAddon: document.getElementById("selAddon"),
+    inpSeqLen: document.getElementById("inpSeqLen"),
+    inpBasicCount: document.getElementById("inpBasicCount"),
+    inpAddonCount: document.getElementById("inpAddonCount"),
+    btnDupToggle: document.getElementById("btnDupToggle"),
+  };
+
+  if (!el.main || !el.board || !el.timeText || !el.btnMute || !el.btnEditKey) {
+    showFatal(new Error("DOM mismatch: elemen utama tidak ditemukan. Pastikan index.html sesuai canvas-v2."));
+    return;
+  }
+
+  // =====================================================
+  // Mobile-like warning (NEVER stop the game)
+  // =====================================================
+  const isMobileLike =
+    (window.matchMedia && window.matchMedia("(pointer: coarse) and (hover: none)").matches) ||
+    /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "") ||
+    window.innerWidth < 820;
+
+  if (isMobileLike) {
+    el.mobileBlock.hidden = false;
+  }
+
+  // =====================================================
+  // Key registry (labels + input matching)
+  // =====================================================
   /** @typedef {{id:string,label:string,icon?:string,kind:'char'|'special', match:(e:KeyboardEvent)=>boolean, displayHtml:()=>string, displayText:()=>string}} KeyDef */
 
   const SPECIAL = {
@@ -94,7 +155,7 @@ if (isMobileLike) {
       label: "ALT",
       icon: "ALT",
       kind: "special",
-      match: (e) => e.key === "Alt",
+      match: (e) => e.key === "Alt" || e.key === "AltGraph",
       displayHtml: () => `<span class="keyLabelSm">ALT</span><span class="srOnly">Alt</span>`,
       displayText: () => "ALT",
     },
@@ -121,6 +182,15 @@ if (isMobileLike) {
   /** @type {Record<string, KeyDef>} */
   const KEYMAP = {};
 
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
   function addCharKey(ch) {
     const isLetter = /^[a-zA-Z]$/.test(ch);
     const id = isLetter ? ch.toUpperCase() : ch;
@@ -139,20 +209,15 @@ if (isMobileLike) {
     };
   }
 
+  // Letters
   for (let c = 65; c <= 90; c++) addCharKey(String.fromCharCode(c));
+  // Digits
   for (let c = 48; c <= 57; c++) addCharKey(String.fromCharCode(c));
+  // Symbols
   ["`", "-", "=", "[", "]", ";", "'", ",", ".", "/", "\"].forEach(addCharKey);
 
+  // Specials
   Object.values(SPECIAL).forEach((k) => (KEYMAP[k.id] = k));
-
-  function escapeHtml(s) {
-    return String(s)
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
 
   function keyLabel(id) {
     const k = KEYMAP[id];
@@ -160,8 +225,9 @@ if (isMobileLike) {
     return k.displayText();
   }
 
-  const CFG_KEY = "jajate_keycfg_v2";
-
+  // =====================================================
+  // Config (stored) — 2 groups
+  // =====================================================
   const DEFAULT_CFG = {
     seqLen: 7,
     basicCount: 5,
@@ -171,6 +237,7 @@ if (isMobileLike) {
     addonSelected: ["SPACE"],
   };
 
+  /** @type {typeof DEFAULT_CFG} */
   let keyCfg = loadCfg();
 
   function loadCfg() {
@@ -193,15 +260,22 @@ if (isMobileLike) {
     localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
   }
 
+  // =====================================================
+  // Mode rules
+  // =====================================================
   const LIMIT_MS = {
     EASY: Infinity,
     MEDIUM: 4000,
     HARD: 3000,
   };
+
   const SESSION_ROUNDS = 10;
   const READY_MS = 1500;
   const GO_MS = 500;
 
+  // =====================================================
+  // Audio (mute toggle)
+  // =====================================================
   let muted = localStorage.getItem("muted") === "1";
   el.btnMute.setAttribute("aria-pressed", String(muted));
   el.btnMute.textContent = muted ? "Unmute" : "Mute";
@@ -225,22 +299,31 @@ if (isMobileLike) {
     } catch {}
   }
 
+  // =====================================================
+  // State
+  // =====================================================
+  /** @type {'EASY'|'MEDIUM'|'HARD'} */
   let mode = (localStorage.getItem("mode") || "EASY").toUpperCase();
   if (!["EASY", "MEDIUM", "HARD"].includes(mode)) mode = "EASY";
 
+  /** @type {'IDLE'|'COUNTDOWN'|'PLAYING'|'FINISHED'} */
   let state = "IDLE";
 
+  /** @type {string[]} */
   let target = [];
   let idx = 0;
   let failCount = 0;
   let seqStartMs = 0;
-
-  let inputTokens = [];
-
   let wrongFlashActive = false;
   let round = 1;
 
+  /** @type {{id:string, ok:boolean}[]} */
+  let inputTokens = [];
+
+  /** @type {{round:number, mode:'EASY'|'MEDIUM'|'HARD', kpm:number, timeMs:number, fail:number, status:'BAD'|'GOOD'|'PERFECT', inputTokens:{id:string,ok:boolean}[]}[]} */
   let easyHistory = [];
+
+  /** @type {{round:number, mode:'EASY'|'MEDIUM'|'HARD', kpm:number, timeMs:number, fail:number, status:'BAD'|'GOOD'|'PERFECT', inputTokens:{id:string,ok:boolean}[]}[]} */
   let sessionHistory = [];
 
   let sessionPoints = 0;
@@ -276,6 +359,7 @@ if (isMobileLike) {
     return `<span class="badge ${cls}">${s}</span>`;
   }
 
+  // INPUT coloring: ok => biru, fail => merah dalam kurung merah, fail space => ( )
   function renderInput(tokens) {
     return tokens
       .map((t) => {
@@ -298,11 +382,7 @@ if (isMobileLike) {
     el.kpmText.textContent = String(calcKpm(idx, ms));
     el.failText.textContent = String(failCount);
 
-    if (mode === "EASY") {
-      el.roundText.textContent = `${round}/∞`;
-    } else {
-      el.roundText.textContent = `${round}/${SESSION_ROUNDS}`;
-    }
+    el.roundText.textContent = mode === "EASY" ? `${round}/∞` : `${round}/${SESSION_ROUNDS}`;
 
     el.srLive.textContent = `Mode ${mode}. Round ${el.roundText.textContent}. Time ${(ms / 1000).toFixed(2)}. KPM ${calcKpm(idx, ms)}. Fail ${failCount}.`;
   }
@@ -351,6 +431,9 @@ if (isMobileLike) {
       .join("");
   }
 
+  // =====================================================
+  // Board + sequence generation
+  // =====================================================
   function drawFrom(pool, n, allowDup) {
     const src = pool.slice(0);
     if (allowDup) {
@@ -358,6 +441,7 @@ if (isMobileLike) {
       for (let i = 0; i < n; i++) out.push(src[Math.floor(Math.random() * src.length)]);
       return out;
     }
+
     const out = [];
     const bag = src.slice(0);
     for (let i = 0; i < n; i++) {
@@ -424,6 +508,9 @@ if (isMobileLike) {
     renderHud();
   }
 
+  // =====================================================
+  // Overlay message
+  // =====================================================
   function setBoardMessage({ title, sub = "", showStart = false, showPlayAgain = false, stateKey = "idle", tone = "" }) {
     el.boardMessageTitle.textContent = title;
     el.boardMessageSub.innerHTML = sub;
@@ -460,21 +547,26 @@ if (isMobileLike) {
       return "GOOD";
     }
 
+    // HARD
     if (timeSec < 1.5 && fail === 0) return "PERFECT";
     if (fail >= 1) return "BAD";
     return "GOOD";
   }
 
+  function sleep(ms) {
+    return new Promise((r) => setTimeout(r, ms));
+  }
+
   async function countdownThenStart() {
     state = "COUNTDOWN";
 
-    setBoardMessage({ title: "Get Ready!", sub: "2", showStart: false, showPlayAgain: false, stateKey: "countdown" });
+    setBoardMessage({ title: "Get Ready!", sub: "2", stateKey: "countdown" });
     await sleep(READY_MS / 2);
 
-    setBoardMessage({ title: "Get Ready!", sub: "1", showStart: false, showPlayAgain: false, stateKey: "countdown" });
+    setBoardMessage({ title: "Get Ready!", sub: "1", stateKey: "countdown" });
     await sleep(READY_MS / 2);
 
-    setBoardMessage({ title: "GO!!!", sub: "", showStart: false, showPlayAgain: false, stateKey: "countdown" });
+    setBoardMessage({ title: "GO!!!", sub: "", stateKey: "countdown" });
     beep(880, 120, 0.05);
     await sleep(GO_MS);
 
@@ -493,7 +585,6 @@ if (isMobileLike) {
     setBoardMessage({
       title: "Session Complete",
       sub: `Score: ${sessionPoints.toFixed(1)} / ${SESSION_ROUNDS}`,
-      showStart: false,
       showPlayAgain: true,
       stateKey: "finished",
       tone,
@@ -574,9 +665,12 @@ if (isMobileLike) {
   }
 
   function findPressedKeyId(e) {
+    // Specials first
     for (const sp of Object.values(SPECIAL)) {
       if (sp.match(e)) return sp.id;
     }
+
+    // Char
     if (!e.key || e.key.length !== 1) return null;
     const k = e.key;
     if (/^[a-zA-Z]$/.test(k)) return k.toUpperCase();
@@ -591,7 +685,6 @@ if (isMobileLike) {
 
   function onKeyDown(e) {
     if (state === "PLAYING") preventBrowserShortcuts(e);
-
     if (!canAcceptInput()) return;
 
     const pressedId = findPressedKeyId(e);
@@ -601,7 +694,6 @@ if (isMobileLike) {
     if (!expectedId) return;
 
     const ok = pressedId === expectedId;
-
     inputTokens.push({ id: pressedId, ok });
 
     if (ok) {
@@ -662,19 +754,15 @@ if (isMobileLike) {
     } else {
       state = "IDLE";
       el.board.innerHTML = "";
-      setBoardMessage({ title: "Ready?", sub: `${mode} • ${SESSION_ROUNDS} rounds`, showStart: true, showPlayAgain: false, stateKey: "idle" });
+      setBoardMessage({ title: "Ready?", sub: `${mode} • ${SESSION_ROUNDS} rounds`, showStart: true, stateKey: "idle" });
       renderHud();
     }
   }
 
-  function sleep(ms) {
-    return new Promise((r) => setTimeout(r, ms));
-  }
-
-  // =========================
+  // =====================================================
   // EDIT KEY Modal
-  // =========================
-
+  // =====================================================
+  /** @type {'BASIC'|'ADDON'} */
   let activeGroup = "BASIC";
   let draft = null;
 
@@ -687,7 +775,6 @@ if (isMobileLike) {
         ..."1234567890".split("").map((k) => ({ id: k, label: k })),
         { id: "-", label: "-" },
         { id: "=", label: "=" },
-        // BACKSPACE removed
       ],
     },
     {
@@ -769,11 +856,17 @@ if (isMobileLike) {
     el.inpSeqLen.value = String(draft.seqLen);
     el.inpBasicCount.value = String(draft.basicCount);
     el.inpAddonCount.value = String(draft.addonCount);
+
     el.btnDupToggle.setAttribute("aria-pressed", String(!!draft.allowDup));
     el.btnDupToggle.querySelector(".toggleText").textContent = draft.allowDup ? "ON" : "OFF";
 
     el.selBasic.textContent = String(draft.basicSelected.size);
     el.selAddon.textContent = String(draft.addonSelected.size);
+  }
+
+  function clampInt(v, min, max) {
+    if (!Number.isFinite(v)) return min;
+    return Math.max(min, Math.min(max, Math.round(v)));
   }
 
   function validateDraft() {
@@ -796,6 +889,13 @@ if (isMobileLike) {
     return "";
   }
 
+  function applyValidationUi() {
+    const msg = validateDraft();
+    el.keyModalError.textContent = msg;
+    el.btnKeySave.disabled = !!msg;
+    el.btnKeySave.style.opacity = msg ? "0.6" : "1";
+  }
+
   function renderKeyboard() {
     const sel = activeGroup === "BASIC" ? draft.basicSelected : draft.addonSelected;
 
@@ -804,7 +904,7 @@ if (isMobileLike) {
         .map((k) => {
           const isSel = sel.has(k.id);
           const extra = k.w ? ` ${k.w}` : "";
-          const cls = `keycap${isSel ? " isSel" : ""}${extra ? " " + extra : ""}`;
+          const cls = `keycap${isSel ? " isSel" : ""}${extra}`;
           return `<div class="${cls}" role="button" tabindex="0" data-keyid="${escapeHtml(k.id)}"><span class="keycapLabel">${escapeHtml(k.label)}</span></div>`;
         })
         .join("");
@@ -833,13 +933,6 @@ if (isMobileLike) {
 
     syncRightPanel();
     renderKeyboard();
-  }
-
-  function applyValidationUi() {
-    const msg = validateDraft();
-    el.keyModalError.textContent = msg;
-    el.btnKeySave.disabled = !!msg;
-    el.btnKeySave.style.opacity = msg ? "0.6" : "1";
   }
 
   function resetDraftToDefault() {
@@ -874,6 +967,7 @@ if (isMobileLike) {
 
     saveCfg(keyCfg);
 
+    // reset history biar fair
     easyHistory = [];
     sessionHistory = [];
     sessionPoints = 0;
@@ -887,17 +981,16 @@ if (isMobileLike) {
     } else {
       state = "IDLE";
       el.board.innerHTML = "";
-      setBoardMessage({ title: "Ready?", sub: `${mode} • ${SESSION_ROUNDS} rounds`, showStart: true, showPlayAgain: false, stateKey: "idle" });
+      setBoardMessage({ title: "Ready?", sub: `${mode} • ${SESSION_ROUNDS} rounds`, showStart: true, stateKey: "idle" });
       renderHud();
     }
 
     closeKeyModal();
   }
 
-  // =========================
+  // =====================================================
   // UI events
-  // =========================
-
+  // =====================================================
   el.modeBtns.forEach((b) => {
     b.addEventListener("click", () => {
       const m = String(b.dataset.mode || "").toUpperCase();
@@ -947,6 +1040,7 @@ if (isMobileLike) {
     syncTabs();
     renderKeyboard();
   });
+
   el.tabAddon.addEventListener("click", () => {
     activeGroup = "ADDON";
     syncTabs();
@@ -960,11 +1054,6 @@ if (isMobileLike) {
       syncRightPanel();
       applyValidationUi();
     });
-  }
-
-  function clampInt(v, min, max) {
-    if (!Number.isFinite(v)) return min;
-    return Math.max(min, Math.min(max, Math.round(v)));
   }
 
   wireNumberInput(el.inpSeqLen, (v) => (draft.seqLen = clampInt(v, 1, 20)));
@@ -981,25 +1070,17 @@ if (isMobileLike) {
     if (!el.keyModal.hidden && e.key === "Escape") {
       e.preventDefault();
       closeKeyModal();
-      return;
     }
   });
 
   window.addEventListener("keydown", onKeyDown);
 
-  function updateModeButtons() {
-    el.modeBtns.forEach((b) => {
-      const m = String(b.dataset.mode || "").toUpperCase();
-      b.hidden = m === mode;
-    });
-  }
-
-  function sleep(ms) {
-    return new Promise((r) => setTimeout(r, ms));
-  }
-
+  // =====================================================
+  // Init
+  // =====================================================
   updateModeButtons();
   renderScores();
   hardResetForMode(mode);
   requestAnimationFrame(tick);
 })();
+```}]}
