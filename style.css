@@ -178,20 +178,10 @@ button{ font: inherit; }
   min-height: 140px;
 }
 
-.tile{
-  width: var(--tileSize);
-  height: var(--tileSize);
-  flex: 0 0 var(--tileSize);
-  padding: 12px 14px;
-  border-radius: 16px;
-  border: 1px solid var(--tileStroke);
-  background: var(--tile);
-  display:grid;
-  place-items:center;
-  font-weight: 1000;
-  font-size: clamp(22px, 3vw, 34px);
-  letter-spacing: 0.5px;
-  user-select: none;
+$1
+/* Special keys di board: sedikit lebih panjang & konsisten */
+.tile.special{
+  min-width: 92px;
 }
 
 .tile.special{
