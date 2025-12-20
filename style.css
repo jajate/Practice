@@ -365,7 +365,7 @@ button{ font: inherit; }
 
 .inOk{ color: #67b3ff; font-weight: 900; }
 .inFailGroup{ color: #ff6b6b; font-weight: 1000; }
-.kbdRow.offsetQ { padding-left: 88px; }
+.kbdRow.offsetQ { padding-left: 74px; }
 
 /* =========================
    Modal + Virtual Keyboard
