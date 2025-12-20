@@ -492,7 +492,7 @@ button{ font: inherit; }
 
 .numField{
   display: grid;
-  grid-template-columns: 1fr 142px;
+  grid-template-columns: 1fr 120px;
   align-items: center;
   gap: 12px;
 }
@@ -506,7 +506,7 @@ button{ font: inherit; }
 }
 
 .numField input{
-  width: 88px;
+  width: 80px;
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid var(--stroke);
@@ -519,7 +519,7 @@ button{ font: inherit; }
 
 .toggleRow{
   display: grid;
-  grid-template-columns: 1fr 92px;
+  grid-template-columns: 1fr 120px;
   align-items: center;
   gap: 12px;
   margin-top: 6px;
@@ -533,7 +533,7 @@ button{ font: inherit; }
 }
 
 .toggle{
-  width: 92px;
+  width: 80px;
   height: 36px;
   padding: 6px 10px;
   border-radius: 999px;
