@@ -476,35 +476,44 @@ button{ font: inherit; }
 
 .rightTitle{ font-weight: 1000; letter-spacing: 0.6px; margin-bottom: 12px; }
 
-.rulesGrid{ display:grid; grid-template-columns: 1fr; gap: 10px; }
+.rulesGrid{
+  display: grid;
+  grid-template-columns: 1fr 92px; /* kolom input fixed */
+  gap: 12px 12px;
+  align-items: center;
+}
 
-.numField{ display:flex; justify-content: space-between; align-items:center; gap: 10px; }
-.numField span{ color: var(--dim); font-weight: 900; font-size: 12px; }
+.numField{ display: contents; }
+.numField span{
+  font-weight: 900;
+  color: var(--dim);
+  letter-spacing: 0.4px;
+  font-size: 12px;
+}
 .numField input{
-  width: 120px;
-  padding: 10px 10px;
+  width: 92px;
+  justify-self: end;
+  padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.14);
+  border: 1px solid var(--stroke);
   background: rgba(255,255,255,0.06);
   color: var(--text);
   font-weight: 900;
+  text-align: right;
 }
 
-.toggleRow{ display:flex; justify-content: space-between; align-items:center; margin: 14px 0 12px; }
+.toggleRow{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
 .toggleRow span{ color: var(--dim); font-weight: 900; font-size: 12px; }
 
 .toggle{
-  border: 1px solid rgba(255,255,255,0.14);
-  background: rgba(255,255,255,0.06);
-  color: var(--text);
-  border-radius: 999px;
-  padding: 8px 10px;
-  min-width: 86px;
-  display:flex;
-  justify-content: space-between;
-  align-items:center;
-  gap: 8px;
-  cursor: pointer;
+  justify-self: end;
+  transform: translateX(-6px); /* geser kiri dikit, optional */
 }
 
 .toggleKnob{ width: 18px; height: 18px; border-radius: 999px; background: rgba(255,255,255,0.62); }
