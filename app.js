@@ -1,7 +1,4 @@
 (() => {
-  // =========================
-  // Keyboard-only gate
-  // =========================
   const isTouchLike =
     (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) ||
     (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
@@ -33,7 +30,6 @@
 
     srLive: document.getElementById("srLive"),
 
-    // modal
     keyModal: document.getElementById("keyModal"),
     kbdRows: document.getElementById("kbdRows"),
     tabBasic: document.getElementById("tabBasic"),
@@ -56,9 +52,6 @@
     return;
   }
 
-  // =========================
-  // Key registry (labels + input matching)
-  // =========================
   /** @typedef {{id:string,label:string,icon?:string,kind:'char'|'special', match:(e:KeyboardEvent)=>boolean, displayHtml:()=>string, displayText:()=>string}} KeyDef */
 
   const SPECIAL = {
@@ -77,17 +70,8 @@
       icon: "⏎",
       kind: "special",
       match: (e) => e.key === "Enter",
-      displayHtml: () => `<span class="keyIcon" aria-hidden="true">⏎</span><span class="srOnly">Enter</span>`,
+      displayHtml: () => `<span class="keyLabelSm">ENTER</span><span class="srOnly">Enter</span>`,
       displayText: () => "ENTER",
-    },
-    BACKSPACE: {
-      id: "BACKSPACE",
-      label: "BACKSPACE",
-      icon: "⌫",
-      kind: "special",
-      match: (e) => e.key === "Backspace",
-      displayHtml: () => `<span class="keyIcon" aria-hidden="true">⌫</span><span class="srOnly">Backspace</span>`,
-      displayText: () => "BACKSPACE",
     },
     SHIFT: {
       id: "SHIFT",
@@ -95,7 +79,7 @@
       icon: "⇧",
       kind: "special",
       match: (e) => e.key === "Shift",
-      displayHtml: () => `<span class="keyIcon" aria-hidden="true">⇧</span><span class="srOnly">Shift</span>`,
+      displayHtml: () => `<span class="keyLabelSm">SHIFT</span><span class="srOnly">Shift</span>`,
       displayText: () => "SHIFT",
     },
     CTRL: {
@@ -104,8 +88,17 @@
       icon: "⌃",
       kind: "special",
       match: (e) => e.key === "Control",
-      displayHtml: () => `<span class="keyIcon" aria-hidden="true">⌃</span><span class="srOnly">Control</span>`,
+      displayHtml: () => `<span class="keyLabelSm">CTRL</span><span class="srOnly">Control</span>`,
       displayText: () => "CTRL",
+    },
+    ALT: {
+      id: "ALT",
+      label: "ALT",
+      icon: "ALT",
+      kind: "special",
+      match: (e) => e.key === "Alt",
+      displayHtml: () => `<span class="keyLabelSm">ALT</span><span class="srOnly">Alt</span>`,
+      displayText: () => "ALT",
     },
     CAPSLOCK: {
       id: "CAPSLOCK",
@@ -113,7 +106,7 @@
       icon: "⇪",
       kind: "special",
       match: (e) => e.key === "CapsLock",
-      displayHtml: () => `<span class="keyIcon" aria-hidden="true">⇪</span><span class="srOnly">CapsLock</span>`,
+      displayHtml: () => `<span class="keyLabelSm">CAPS</span><span class="srOnly">CapsLock</span>`,
       displayText: () => "CAPS",
     },
     ESC: {
@@ -122,7 +115,7 @@
       icon: "ESC",
       kind: "special",
       match: (e) => e.key === "Escape",
-      displayHtml: () => `<span class="keyIcon" aria-hidden="true">ESC</span><span class="srOnly">Escape</span>`,
+      displayHtml: () => `<span class="keyLabelSm">ESC</span><span class="srOnly">Escape</span>`,
       displayText: () => "ESC",
     },
   };
@@ -131,7 +124,6 @@
   const KEYMAP = {};
 
   function addCharKey(ch) {
-    // letters stored as uppercase ID, symbols as themselves
     const isLetter = /^[a-zA-Z]$/.test(ch);
     const id = isLetter ? ch.toUpperCase() : ch;
     KEYMAP[id] = {
@@ -149,14 +141,10 @@
     };
   }
 
-  // Populate letters
   for (let c = 65; c <= 90; c++) addCharKey(String.fromCharCode(c));
-  // Digits
   for (let c = 48; c <= 57; c++) addCharKey(String.fromCharCode(c));
-  // Symbols (requested)
-  ["`", "-", "=", "[", "]", ";", "'", ",", ".", "/", "\\"].forEach(addCharKey);
+  ["`", "-", "=", "[", "]", ";", "'", ",", ".", "/", "\"].forEach(addCharKey);
 
-  // Specials
   Object.values(SPECIAL).forEach((k) => (KEYMAP[k.id] = k));
 
   function escapeHtml(s) {
@@ -171,12 +159,9 @@
   function keyLabel(id) {
     const k = KEYMAP[id];
     if (!k) return id;
-    return k.kind === "special" ? k.displayText() : k.displayText();
+    return k.displayText();
   }
 
-  // =========================
-  // Config (stored) — 2 groups
-  // =========================
   const CFG_KEY = "jajate_keycfg_v2";
 
   const DEFAULT_CFG = {
@@ -188,7 +173,6 @@
     addonSelected: ["SPACE"],
   };
 
-  /** @type {typeof DEFAULT_CFG} */
   let keyCfg = loadCfg();
 
   function loadCfg() {
@@ -211,9 +195,6 @@
     localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
   }
 
-  // =========================
-  // Mode rules
-  // =========================
   const LIMIT_MS = {
     EASY: Infinity,
     MEDIUM: 4000,
@@ -223,9 +204,6 @@
   const READY_MS = 1500;
   const GO_MS = 500;
 
-  // =========================
-  // Audio (mute toggle)
-  // =========================
   let muted = localStorage.getItem("muted") === "1";
   el.btnMute.setAttribute("aria-pressed", String(muted));
   el.btnMute.textContent = muted ? "Unmute" : "Mute";
@@ -249,31 +227,22 @@
     } catch {}
   }
 
-  // =========================
-  // State machine
-  // =========================
-  /** @type {'EASY'|'MEDIUM'|'HARD'} */
   let mode = (localStorage.getItem("mode") || "EASY").toUpperCase();
   if (!["EASY", "MEDIUM", "HARD"].includes(mode)) mode = "EASY";
 
-  /** @type {'IDLE'|'COUNTDOWN'|'PLAYING'|'FINISHED'} */
   let state = "IDLE";
 
-  /** @type {string[]} */
   let target = [];
   let idx = 0;
   let failCount = 0;
   let seqStartMs = 0;
 
-  /** @type {{id:string, ok:boolean}[]} */
   let inputTokens = [];
 
   let wrongFlashActive = false;
   let round = 1;
 
-  /** @type {{round:number, mode:'EASY'|'MEDIUM'|'HARD', kpm:number, timeMs:number, fail:number, status:'BAD'|'GOOD'|'PERFECT', inputTokens:{id:string,ok:boolean}[]}[]} */
   let easyHistory = [];
-  /** @type {{round:number, mode:'EASY'|'MEDIUM'|'HARD', kpm:number, timeMs:number, fail:number, status:'BAD'|'GOOD'|'PERFECT', inputTokens:{id:string,ok:boolean}[]}[]} */
   let sessionHistory = [];
 
   let sessionPoints = 0;
@@ -309,7 +278,6 @@
     return `<span class="badge ${cls}">${s}</span>`;
   }
 
-  // INPUT coloring: ok => biru, fail => merah dalam kurung merah, fail space => ( )
   function renderInput(tokens) {
     return tokens
       .map((t) => {
@@ -385,10 +353,6 @@
       .join("");
   }
 
-  // =========================
-  // Board + sequence generation
-  // =========================
-
   function drawFrom(pool, n, allowDup) {
     const src = pool.slice(0);
     if (allowDup) {
@@ -396,7 +360,6 @@
       for (let i = 0; i < n; i++) out.push(src[Math.floor(Math.random() * src.length)]);
       return out;
     }
-    // no duplicates
     const out = [];
     const bag = src.slice(0);
     for (let i = 0; i < n; i++) {
@@ -423,7 +386,6 @@
     const b = keyCfg.basicCount;
     const a = keyCfg.addonCount;
 
-    // Safety fallback
     if (basicPool.length === 0) basicPool.push("Q");
     if (addonPool.length === 0) addonPool.push("SPACE");
 
@@ -432,12 +394,16 @@
     return shuffle([...basicPicks, ...addonPicks]).slice(0, seqLen);
   }
 
+  const SPECIAL_BOARD = new Set(["ESC", "CAPSLOCK", "SHIFT", "CTRL", "ALT", "ENTER"]);
+
   function renderBoard() {
     const tiles = [];
     for (let i = 0; i < target.length; i++) {
       const id = target[i];
       const cls = ["tile"];
       const k = KEYMAP[id];
+
+      if (SPECIAL_BOARD.has(id)) cls.push("special");
 
       if (i < idx) cls.push("done", "ok");
       if (i === idx) cls.push("current");
@@ -459,10 +425,6 @@
     renderBoard();
     renderHud();
   }
-
-  // =========================
-  // Overlay message
-  // =========================
 
   function setBoardMessage({ title, sub = "", showStart = false, showPlayAgain = false, stateKey = "idle", tone = "" }) {
     el.boardMessageTitle.textContent = title;
@@ -500,7 +462,6 @@
       return "GOOD";
     }
 
-    // HARD
     if (timeSec < 1.5 && fail === 0) return "PERFECT";
     if (fail >= 1) return "BAD";
     return "GOOD";
@@ -615,21 +576,17 @@
   }
 
   function findPressedKeyId(e) {
-    // Special first
     for (const sp of Object.values(SPECIAL)) {
       if (sp.match(e)) return sp.id;
     }
-    // Char
     if (!e.key || e.key.length !== 1) return null;
     const k = e.key;
     if (/^[a-zA-Z]$/.test(k)) return k.toUpperCase();
-    // symbols
     if (KEYMAP[k]) return k;
     return null;
   }
 
   function preventBrowserShortcuts(e) {
-    // prevent scroll / focus jumps while playing
     const hardPrevent = new Set([" ", "Tab", "Backspace", "Enter", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
     if (hardPrevent.has(e.key)) e.preventDefault();
   }
@@ -720,11 +677,9 @@
   // EDIT KEY Modal
   // =========================
 
-  /** @type {'BASIC'|'ADDON'} */
   let activeGroup = "BASIC";
   let draft = null;
 
-  // Layout like real keyboard (simplified)
   const KB_LAYOUT = [
     {
       cls: "kbdRow",
@@ -734,7 +689,7 @@
         ..."1234567890".split("").map((k) => ({ id: k, label: k })),
         { id: "-", label: "-" },
         { id: "=", label: "=" },
-        { id: "BACKSPACE", label: "BACKSPACE", w: "backspace" },
+        // BACKSPACE removed
       ],
     },
     {
@@ -743,7 +698,7 @@
         ..."QWERTYUIOP".split("").map((k) => ({ id: k, label: k })),
         { id: "[", label: "[" },
         { id: "]", label: "]" },
-        { id: "\\", label: "\\", w: "wide" },
+        { id: "\", label: "\", w: "wide" },
       ],
     },
     {
@@ -771,7 +726,9 @@
       cls: "kbdRow offset3",
       keys: [
         { id: "CTRL", label: "CTRL", w: "wide" },
+        { id: "ALT", label: "ALT", w: "wide" },
         { id: "SPACE", label: "SPACE", w: "space" },
+        { id: "ALT", label: "ALT", w: "wide", dup: true },
         { id: "CTRL", label: "CTRL", w: "wide", dup: true },
       ],
     },
@@ -793,7 +750,6 @@
     renderKeyboard();
 
     el.keyModal.hidden = false;
-    // focus safe
     setTimeout(() => el.btnKeyClose.focus({ preventScroll: true }), 0);
   }
 
@@ -851,7 +807,6 @@
           const isSel = sel.has(k.id);
           const extra = k.w ? ` ${k.w}` : "";
           const cls = `keycap${isSel ? " isSel" : ""}${extra ? " " + extra : ""}`;
-          // dup keys share same id, that's ok
           return `<div class="${cls}" role="button" tabindex="0" data-keyid="${escapeHtml(k.id)}"><span class="keycapLabel">${escapeHtml(k.label)}</span></div>`;
         })
         .join("");
@@ -859,7 +814,6 @@
       return `<div class="${row.cls}">${keysHtml}</div>`;
     }).join("");
 
-    // click + enter/space on keycaps
     el.kbdRows.querySelectorAll(".keycap").forEach((node) => {
       node.addEventListener("click", () => toggleKey(node.dataset.keyid));
       node.addEventListener("keydown", (e) => {
@@ -922,14 +876,12 @@
 
     saveCfg(keyCfg);
 
-    // reset history averages to match new seqLen feels fair
     easyHistory = [];
     sessionHistory = [];
     sessionPoints = 0;
     round = 1;
     renderScores();
 
-    // refresh current gameplay
     if (mode === "EASY") {
       state = "PLAYING";
       hideBoardMessage();
@@ -981,20 +933,17 @@
     el.main.focus({ preventScroll: true });
   });
 
-  // Edit key modal
   el.btnEditKey.addEventListener("click", openKeyModal);
   el.btnKeyClose.addEventListener("click", closeKeyModal);
   el.btnKeyCancel.addEventListener("click", closeKeyModal);
   el.btnKeyReset.addEventListener("click", resetDraftToDefault);
   el.btnKeySave.addEventListener("click", commitDraft);
 
-  // backdrop click
   el.keyModal.addEventListener("click", (e) => {
     const t = e.target;
     if (t && t.dataset && t.dataset.close === "1") closeKeyModal();
   });
 
-  // tab switching
   el.tabBasic.addEventListener("click", () => {
     activeGroup = "BASIC";
     syncTabs();
@@ -1006,7 +955,6 @@
     renderKeyboard();
   });
 
-  // numeric inputs
   function wireNumberInput(inp, onSet) {
     inp.addEventListener("input", () => {
       const v = Number(inp.value);
@@ -1014,6 +962,11 @@
       syncRightPanel();
       applyValidationUi();
     });
+  }
+
+  function clampInt(v, min, max) {
+    if (!Number.isFinite(v)) return min;
+    return Math.max(min, Math.min(max, Math.round(v)));
   }
 
   wireNumberInput(el.inpSeqLen, (v) => (draft.seqLen = clampInt(v, 1, 20)));
@@ -1026,7 +979,6 @@
     applyValidationUi();
   });
 
-  // ESC to close modal
   window.addEventListener("keydown", (e) => {
     if (!el.keyModal.hidden && e.key === "Escape") {
       e.preventDefault();
@@ -1037,14 +989,16 @@
 
   window.addEventListener("keydown", onKeyDown);
 
-  function clampInt(v, min, max) {
-    if (!Number.isFinite(v)) return min;
-    return Math.max(min, Math.min(max, Math.round(v)));
+  function updateModeButtons() {
+    el.modeBtns.forEach((b) => {
+      const m = String(b.dataset.mode || "").toUpperCase();
+      b.hidden = m === mode;
+    });
   }
 
-  // =========================
-  // Init
-  // =========================
+  function sleep(ms) {
+    return new Promise((r) => setTimeout(r, ms));
+  }
 
   updateModeButtons();
   renderScores();
