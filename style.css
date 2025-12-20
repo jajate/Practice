@@ -506,7 +506,7 @@ button{ font: inherit; }
 }
 
 .numField input{
-  width: 24px;
+  width: 44px;
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid var(--stroke);
