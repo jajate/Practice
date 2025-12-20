@@ -492,7 +492,7 @@ button{ font: inherit; }
 
 .numField{
   display: grid;
-  grid-template-columns: 1fr 152px;
+  grid-template-columns: 1fr 142px;
   align-items: center;
   gap: 12px;
 }
@@ -506,7 +506,7 @@ button{ font: inherit; }
 }
 
 .numField input{
-  width: 44px;
+  width: 88px;
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid var(--stroke);
