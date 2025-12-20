@@ -1,181 +1,103 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JAJATE Typing Practice</title>
-  <meta name="description" content="JAJATE Typing Practice - HTML/CSS/JS" />
-  <link rel="stylesheet" href="./style.css" />
-  <script defer src="./app.js"></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JAJATE Typing Practice</title>
+<meta name="description" content="JAJATE Typing Practice - HTML/CSS/JS" />
+<link rel="stylesheet" href="./style.css" />
+<script defer src="./app.js"></script>
 </head>
 
+
 <body>
-  <a class="skip" href="#main">Skip to game</a>
+<a class="skip" href="#main">Skip to game</a>
 
-  <main id="main" class="shell" tabindex="-1">
-    <section class="card" aria-label="Typing practice">
-      <header class="top">
-        <h1 class="title">JAJATE Typing Practice</h1>
 
-        <div class="controls" role="group" aria-label="Controls">
-          <!-- Mode buttons: JS akan menyembunyikan mode aktif -->
-          <button class="btn modeBtn" type="button" data-mode="EASY">EASY</button>
-          <button class="btn modeBtn" type="button" data-mode="MEDIUM">MEDIUM</button>
-          <button class="btn modeBtn" type="button" data-mode="HARD">HARD</button>
+<main id="main" class="shell" tabindex="-1">
+<section class="card" aria-label="Typing practice">
+<header class="top">
+<h1 class="title">JAJATE Typing Practice</h1>
 
-          <button id="btnEditKey" class="btn" type="button">Edit Key</button>
-          <button id="btnMute" class="btn" type="button" aria-pressed="false">Mute</button>
-        </div>
-      </header>
 
-      <!-- Per-sequence stats (reset setiap sequence baru) -->
-      <div class="hud" aria-label="Sequence stats">
-        <div class="pill" aria-label="Time">
-          <span class="pillKey">TIME</span>
-          <span id="timeText" class="pillVal">0.00s</span>
-        </div>
+<div class="controls" role="group" aria-label="Controls">
+<!-- Mode buttons: JS akan menyembunyikan mode aktif -->
+<button class="btn modeBtn" type="button" data-mode="EASY">EASY</button>
+<button class="btn modeBtn" type="button" data-mode="MEDIUM">MEDIUM</button>
+<button class="btn modeBtn" type="button" data-mode="HARD">HARD</button>
 
-        <div class="pill" aria-label="Keys per minute">
-          <span class="pillKey">KPM</span>
-          <span id="kpmText" class="pillVal">0</span>
-        </div>
 
-        <div class="pill" aria-label="Fail">
-          <span class="pillKey">FAIL</span>
-          <span id="failText" class="pillVal">0</span>
-        </div>
+<button id="btnEditKey" class="btn" type="button">Edit Key</button>
+<button id="btnMute" class="btn" type="button" aria-pressed="false">Mute</button>
+</div>
+</header>
 
-        <div class="pill" aria-label="Round">
-          <span class="pillKey">ROUND</span>
-          <span id="roundText" class="pillVal">1/∞</span>
-        </div>
-      </div>
 
-      <div class="game">
-        <div id="mobileBlock" class="mobileBlock" hidden role="alert">
-          <h2>Keyboard required</h2>
-          <p>Game ini dibuat untuk PC/laptop dengan keyboard. Mobile/touch tidak didukung.</p>
-        </div>
+<!-- Per-sequence stats (reset setiap sequence baru) -->
+<div class="hud" aria-label="Sequence stats">
+<div class="pill" aria-label="Time">
+<span class="pillKey">TIME</span>
+<span id="timeText" class="pillVal">0.00s</span>
+</div>
 
-        <div class="boardWrap" aria-label="Typing board">
-          <!-- Overlay message area: Start / Get Ready / GO / Finished -->
-          <div id="boardMessage" class="boardMessage" hidden>
-            <div class="boardMessagePanel">
-              <div id="boardMessageTitle" class="boardMessageTitle">Get Ready!</div>
-              <div id="boardMessageSub" class="boardMessageSub dim">2</div>
-              <div class="boardMessageActions">
-                <button id="btnStart" class="btn" type="button">Start</button>
-                <button id="btnPlayAgain" class="btn" type="button">Play again</button>
-              </div>
-            </div>
-          </div>
 
-          <div id="board" class="board" role="group" aria-label="Target sequence"></div>
-        </div>
+<div class="pill" aria-label="Keys per minute">
+<span class="pillKey">KPM</span>
+<span id="kpmText" class="pillVal">0</span>
+</div>
 
-        <!-- Score + History (centered) -->
-        <div class="scoreWrap" aria-label="Score table">
-          <div class="scoreAvg" aria-label="Average last 10">
-            <span class="scoreLabel">AVERAGE (last 10):</span>
-            <span class="scoreItem">KPM <b id="avgKpm">0</b></span>
-            <span class="scoreSep">|</span>
-            <span class="scoreItem">TIME <b id="avgTime">0.00s</b></span>
-            <span class="scoreSep">|</span>
-            <span class="scoreItem">FAIL RATE <b id="avgFailRate">0.0%</b></span>
-          </div>
 
-          <div class="scoreTable" aria-label="History last 10">
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>MODE</th>
-                  <th class="num">KPM</th>
-                  <th class="num">TIME</th>
-                  <th class="num">FAIL</th>
-                  <th>STATUS</th>
-                  <th>INPUT</th>
-                </tr>
-              </thead>
-              <tbody id="historyBody"></tbody>
-            </table>
-          </div>
-        </div>
+<div class="pill" aria-label="Fail">
+<span class="pillKey">FAIL</span>
+<span id="failText" class="pillVal">0</span>
+</div>
 
-        <!-- Screen reader live region -->
-        <div id="srLive" class="srOnly" aria-live="polite" aria-atomic="true"></div>
-      </div>
-    </section>
-  </main>
 
-  <!-- EDIT KEY MODAL -->
-  <div id="keyModal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="keyModalTitle">
-    <div class="modalBackdrop" data-close="1"></div>
+<div class="pill" aria-label="Round">
+<span class="pillKey">ROUND</span>
+<span id="roundText" class="pillVal">1/∞</span>
+</div>
+</div>
 
-    <div class="modalCard" role="document">
-      <div class="modalHeader">
-        <div>
-          <div id="keyModalTitle" class="modalTitle">EDIT KEY</div>
-          <div class="modalSub">Pilih key untuk 2 group (Basic & Addon) — bebas. Total picks harus sama dengan panjang sequence.</div>
-        </div>
-        <button id="btnKeyClose" class="btn" type="button" aria-label="Close">Close</button>
-      </div>
 
-      <div class="modalBody">
-        <div class="modalLeft">
-          <div class="tabs" role="tablist" aria-label="Group">
-            <button id="tabBasic" class="tab isActive" type="button" role="tab" aria-selected="true">BASIC</button>
-            <button id="tabAddon" class="tab" type="button" role="tab" aria-selected="false">ADDON</button>
-          </div>
+<div class="game">
+<div id="mobileBlock" class="mobileBlock" hidden role="alert">
+<h2>Keyboard required</h2>
+<p>Game ini dibuat untuk PC/laptop dengan keyboard. Mobile/touch tidak didukung.</p>
+</div>
 
-          <div class="kbd" aria-label="Virtual keyboard">
-            <!-- rows injected by JS -->
-            <div id="kbdRows"></div>
-            <div class="kbdHint">Klik key untuk toggle. Special key yang didukung: ESC, CAPS, SHIFT, CTRL, ALT, SPACE, ENTER.</div>
-          </div>
-        </div>
 
-        <aside class="modalRight" aria-label="Rules">
-          <div class="rightTitle">RULES</div>
+<div class="boardWrap" aria-label="Typing board">
+<!-- Overlay message area: Start / Get Ready / GO / Finished -->
+<div id="boardMessage" class="boardMessage" hidden>
+<div class="boardMessagePanel">
+<div id="boardMessageTitle" class="boardMessageTitle">Get Ready!</div>
+<div id="boardMessageSub" class="boardMessageSub dim">2</div>
+<div class="boardMessageActions">
+<button id="btnStart" class="btn" type="button">Start</button>
+<button id="btnPlayAgain" class="btn" type="button">Play again</button>
+</div>
+</div>
+</div>
 
-          <div class="rulesGrid">
-            <label class="numField">
-              <span>SEQ LEN</span>
-              <input id="inpSeqLen" type="number" min="1" max="20" step="1" />
-            </label>
-            <label class="numField">
-              <span>BASIC</span>
-              <input id="inpBasicCount" type="number" min="0" max="20" step="1" />
-            </label>
-            <label class="numField">
-              <span>ADDON</span>
-              <input id="inpAddonCount" type="number" min="0" max="20" step="1" />
-            </label>
-          </div>
 
-          <label class="toggleRow">
-            <span>ALLOW DUPLICATES</span>
-            <button id="btnDupToggle" class="toggle" type="button" aria-pressed="true">
-              <span class="toggleKnob"></span>
-              <span class="toggleText">ON</span>
-            </button>
-          </label>
+<div id="board" class="board" role="group" aria-label="Target sequence"></div>
+</div>
 
-          <div class="selBox">
-            <div class="selTitle">SELECTED</div>
-            <div class="selLine">BASIC: <b id="selBasic">0</b> keys</div>
-            <div class="selLine">ADDON: <b id="selAddon">0</b> keys</div>
-            <div id="keyModalError" class="error" aria-live="polite"></div>
-          </div>
 
-          <div class="modalActions">
-            <button id="btnKeyReset" class="btn" type="button">Reset</button>
-            <button id="btnKeyCancel" class="btn" type="button">Cancel</button>
-            <button id="btnKeySave" class="btn btnPrimary" type="button">Save</button>
-          </div>
-        </aside>
-      </div>
-    </div>
-  </div>
-</body>
+<!-- Score + History (centered) -->
+<div class="scoreWrap" aria-label="Score table">
+<div class="scoreAvg" aria-label="Average last 10">
+<span class="scoreLabel">AVERAGE (last 10):</span>
+<span class="scoreItem">KPM <b id="avgKpm">0</b></span>
+<span class="scoreSep">|</span>
+<span class="scoreItem">TIME <b id="avgTime">0.00s</b></span>
+<span class="scoreSep">|</span>
+<span class="scoreItem">FAIL RATE <b id="avgFailRate">0.0%</b></span>
+</div>
+
+
+<div class="scoreTable" aria-label="History last 10">
+<table>
+<thead>
 </html>
