@@ -1,3 +1,5 @@
+/* canvas-v2 — style.css (patched RULES alignment) */
+
 [hidden] { display: none !important; }
 
 :root{
@@ -365,7 +367,6 @@ button{ font: inherit; }
 
 .inOk{ color: #67b3ff; font-weight: 900; }
 .inFailGroup{ color: #ff6b6b; font-weight: 1000; }
-.kbdRow.offsetQ { padding-left: 74px; }
 
 /* =========================
    Modal + Virtual Keyboard
@@ -440,6 +441,7 @@ button{ font: inherit; }
 .kbdRow.offset1{ padding-left: 18px; }
 .kbdRow.offset2{ padding-left: 34px; }
 .kbdRow.offset3{ padding-left: 52px; }
+.kbdRow.offsetQ{ padding-left: 28px; } /* Q row (optional) */
 
 .keycap{
   border: 1px solid rgba(255,255,255,0.14);
@@ -476,23 +478,30 @@ button{ font: inherit; }
 
 .rightTitle{ font-weight: 1000; letter-spacing: 0.6px; margin-bottom: 12px; }
 
+/* === FIX: input RULES nggak kepanjangan + toggle nggak kepinggir === */
 .rulesGrid{
-  display: grid;
-  grid-template-columns: 1fr 92px; /* kolom input fixed */
-  gap: 12px 12px;
-  align-items: center;
+  display:flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.numField{ display: contents; }
+.numField{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .numField span{
   font-weight: 900;
   color: var(--dim);
   letter-spacing: 0.4px;
   font-size: 12px;
 }
+
 .numField input{
   width: 92px;
-  justify-self: end;
+  flex: 0 0 92px;
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid var(--stroke);
@@ -503,20 +512,37 @@ button{ font: inherit; }
 }
 
 .toggleRow{
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
   gap: 12px;
   margin-top: 10px;
 }
+
 .toggleRow span{ color: var(--dim); font-weight: 900; font-size: 12px; }
 
 .toggle{
-  justify-self: end;
-  transform: translateX(-6px); /* geser kiri dikit, optional */
+  width: 92px;
+  height: 36px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  cursor: pointer;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.toggle[aria-pressed="true"]{
+  border-color: rgba(103,179,255,0.45);
+  background: rgba(103,179,255,0.12);
 }
 
 .toggleKnob{ width: 18px; height: 18px; border-radius: 999px; background: rgba(255,255,255,0.62); }
+.toggle[aria-pressed="true"] .toggleKnob{ background: rgba(103,179,255,0.92); }
 .toggleText{ font-weight: 1000; font-size: 12px; }
 
 .selBox{
@@ -550,3 +576,4 @@ button{ font: inherit; }
   .modalRight{ border-left: 0; border-top: 1px solid rgba(255,255,255,0.08); }
   .keycap.space{ min-width: 220px; }
 }
+
