@@ -478,17 +478,22 @@ button{ font: inherit; }
 
 .rightTitle{ font-weight: 1000; letter-spacing: 0.6px; margin-bottom: 12px; }
 
-/* === FIX: input RULES nggak kepanjangan + toggle nggak kepinggir === */
+/* === FIX v2: RULES layout pakai grid biar tidak kepotong === */
+
+/* biar panel kanan tidak nge-clip control */
+.modalRight{ overflow: visible; }
+
+/* label + input sejajar, input fixed width */
 .rulesGrid{
-  display:flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
 .numField{
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 92px;
+  align-items: center;
   gap: 12px;
 }
 
@@ -497,11 +502,11 @@ button{ font: inherit; }
   color: var(--dim);
   letter-spacing: 0.4px;
   font-size: 12px;
+  min-width: 0;
 }
 
 .numField input{
   width: 92px;
-  flex: 0 0 92px;
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid var(--stroke);
@@ -512,14 +517,19 @@ button{ font: inherit; }
 }
 
 .toggleRow{
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 92px;
+  align-items: center;
   gap: 12px;
-  margin-top: 10px;
+  margin-top: 6px;
 }
 
-.toggleRow span{ color: var(--dim); font-weight: 900; font-size: 12px; }
+.toggleRow span{
+  color: var(--dim);
+  font-weight: 900;
+  font-size: 12px;
+  min-width: 0;
+}
 
 .toggle{
   width: 92px;
@@ -534,6 +544,7 @@ button{ font: inherit; }
   align-items:center;
   justify-content: space-between;
   gap: 10px;
+  justify-self: end;
 }
 
 .toggle[aria-pressed="true"]{
