@@ -99,13 +99,20 @@
   // =====================================================
   // Mobile-like warning (NEVER stop the game)
   // =====================================================
-  const isMobileLike =
-    (window.matchMedia && window.matchMedia("(pointer: coarse) and (hover: none)").matches) ||
-    /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "") ||
-    window.innerWidth < 820;
+  // =========================
+  // Keyboard-only gate (SAFE)
+  // =========================
+  // Jangan block berdasarkan maxTouchPoints (banyak laptop/PC punya touchscreen).
+  // Hanya tampilkan warning jika benar-benar mobile-like.
+  const isLikelyMobile =
+    (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) &&
+    (window.matchMedia && window.matchMedia("(max-width: 900px)").matches);
 
-  if (isMobileLike) {
+  // Tampilkan warning mobile, tapi JANGAN stop app
+  if (isLikelyMobile) {
     el.mobileBlock.hidden = false;
+  } else {
+    el.mobileBlock.hidden = true;
   }
 
   // =====================================================
