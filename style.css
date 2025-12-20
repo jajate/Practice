@@ -441,7 +441,7 @@ button{ font: inherit; }
 .kbdRow.offset1{ padding-left: 18px; }
 .kbdRow.offset2{ padding-left: 34px; }
 .kbdRow.offset3{ padding-left: 52px; }
-.kbdRow.offsetQ{ padding-left: 34px; } /* Q row (optional) */
+.kbdRow.offsetQ{ padding-left: 64px; } /* Q row (optional) */
 
 .keycap{
   border: 1px solid rgba(255,255,255,0.14);
