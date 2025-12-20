@@ -49,7 +49,6 @@
     keyModalError: document.getElementById("keyModalError"),
     selBasic: document.getElementById("selBasic"),
     selAddon: document.getElementById("selAddon"),
-    inpSeqLen: document.getElementById("inpSeqLen"),
     inpBasicCount: document.getElementById("inpBasicCount"),
     inpAddonCount: document.getElementById("inpAddonCount"),
     btnDupToggle: document.getElementById("btnDupToggle"),
@@ -182,8 +181,8 @@
 
   const DEFAULT_CFG = {
     seqLen: 7,
-    basicCount: 5,
-    addonCount: 2,
+    basicCount: 6,
+    addonCount: 1,
     allowDup: true,
     basicSelected: ["Q", "W", "E", "A", "S", "D"],
     addonSelected: ["SPACE"],
@@ -751,7 +750,6 @@
 
   function openKeyModal() {
     draft = {
-      seqLen: keyCfg.seqLen,
       basicCount: keyCfg.basicCount,
       addonCount: keyCfg.addonCount,
       allowDup: keyCfg.allowDup,
@@ -783,7 +781,6 @@
   }
 
   function syncRightPanel() {
-    el.inpSeqLen.value = String(draft.seqLen);
     el.inpBasicCount.value = String(draft.basicCount);
     el.inpAddonCount.value = String(draft.addonCount);
     el.btnDupToggle.setAttribute("aria-pressed", String(!!draft.allowDup));
@@ -799,24 +796,25 @@
   }
 
   function validateDraft() {
-    const seqLen = Number(draft.seqLen);
-    const b = Number(draft.basicCount);
-    const a = Number(draft.addonCount);
+  const b = Number(draft.basicCount);
+  const a = Number(draft.addonCount);
+  const seqLen = b + a;
 
-    if (!Number.isFinite(seqLen) || seqLen < 1) return "SEQ LEN minimal 1";
-    if (!Number.isFinite(b) || b < 0) return "BASIC picks minimal 0";
-    if (!Number.isFinite(a) || a < 0) return "ADDON picks minimal 0";
-    if (b + a !== seqLen) return "BASIC + ADDON harus sama dengan SEQ LEN";
-    if (b > 0 && draft.basicSelected.size === 0) return "Pilih minimal 1 key di BASIC";
-    if (a > 0 && draft.addonSelected.size === 0) return "Pilih minimal 1 key di ADDON";
+  if (!Number.isFinite(b) || b < 0) return "BASIC picks minimal 0";
+  if (!Number.isFinite(a) || a < 0) return "ADDON picks minimal 0";
+  if (seqLen < 1) return "Total picks minimal 1";
+  if (seqLen > 20) return "Total picks maksimal 20";
 
-    if (!draft.allowDup) {
-      if (b > draft.basicSelected.size) return "No-duplicate: BASIC picks lebih besar dari jumlah key BASIC";
-      if (a > draft.addonSelected.size) return "No-duplicate: ADDON picks lebih besar dari jumlah key ADDON";
-    }
+  if (b > 0 && draft.basicSelected.size === 0) return "Pilih minimal 1 key di BASIC";
+  if (a > 0 && draft.addonSelected.size === 0) return "Pilih minimal 1 key di ADDON";
 
-    return "";
+  if (!draft.allowDup) {
+    if (b > draft.basicSelected.size) return "No-duplicate: BASIC picks lebih besar dari jumlah key BASIC";
+    if (a > draft.addonSelected.size) return "No-duplicate: ADDON picks lebih besar dari jumlah key ADDON";
   }
+
+  return "";
+}
 
   function applyValidationUi() {
     const msg = validateDraft();
@@ -865,7 +863,6 @@
   }
 
   function resetDraftToDefault() {
-    draft.seqLen = DEFAULT_CFG.seqLen;
     draft.basicCount = DEFAULT_CFG.basicCount;
     draft.addonCount = DEFAULT_CFG.addonCount;
     draft.allowDup = DEFAULT_CFG.allowDup;
@@ -885,15 +882,15 @@
       return;
     }
 
+    const seqLen = Number(draft.basicCount) + Number(draft.addonCount);
     keyCfg = {
-      seqLen: Number(draft.seqLen),
+      seqLen, // derived
       basicCount: Number(draft.basicCount),
       addonCount: Number(draft.addonCount),
       allowDup: !!draft.allowDup,
       basicSelected: Array.from(draft.basicSelected),
       addonSelected: Array.from(draft.addonSelected),
     };
-
     saveCfg(keyCfg);
 
     easyHistory = [];
@@ -984,7 +981,6 @@
     });
   }
 
-  wireNumberInput(el.inpSeqLen, (v) => (draft.seqLen = clampInt(v, 1, 20)));
   wireNumberInput(el.inpBasicCount, (v) => (draft.basicCount = clampInt(v, 0, 20)));
   wireNumberInput(el.inpAddonCount, (v) => (draft.addonCount = clampInt(v, 0, 20)));
 
