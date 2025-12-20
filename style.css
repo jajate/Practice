@@ -17,6 +17,10 @@
 
   --focus: #ffffff;
   --shadow: 0 18px 60px rgba(0,0,0,0.65);
+
+  /* Tile sizing */
+  --tileSize: 72px;
+  --tileSpecialW: 92px;
 }
 
 *{ box-sizing: border-box; }
@@ -50,7 +54,6 @@ body{
   z-index: 9999;
 }
 
-/* card top-center */
 .shell{
   min-height: 100vh;
   display:flex;
@@ -176,8 +179,9 @@ button{ font: inherit; }
 }
 
 .tile{
-  min-width: 68px;
-  min-height: 68px;
+  width: var(--tileSize);
+  height: var(--tileSize);
+  flex: 0 0 var(--tileSize);
   padding: 12px 14px;
   border-radius: 16px;
   border: 1px solid var(--tileStroke);
@@ -190,6 +194,19 @@ button{ font: inherit; }
   user-select: none;
 }
 
+.tile.special{
+  width: var(--tileSpecialW);
+  flex: 0 0 var(--tileSpecialW);
+}
+
+.keyLabelSm{
+  font-size: 13px;
+  font-weight: 1000;
+  letter-spacing: 0.6px;
+  opacity: 0.95;
+  white-space: nowrap;
+}
+
 .tile.done{ opacity: 0.55; }
 .tile.current{
   border-color: rgba(255,255,255,0.85);
@@ -200,7 +217,6 @@ button{ font: inherit; }
   box-shadow: 0 0 0 3px rgba(159,255,224,0.10);
 }
 
-/* A) CURRENT-WRONG: tile merah sementara */
 .tile.wrong{
   background: rgba(220, 30, 40, 0.78);
   border-color: rgba(255, 210, 210, 0.60);
@@ -215,7 +231,6 @@ button{ font: inherit; }
   opacity: 0.95;
 }
 
-/* board message overlay */
 .boardMessage{
   position: absolute;
   inset: 0;
@@ -225,7 +240,6 @@ button{ font: inherit; }
   backdrop-filter: blur(2px);
 }
 
-/* B) overlay score tone (merah / hijau / orange) */
 .boardMessage[data-state="finished"][data-tone="red"]{
   background:
     radial-gradient(520px 320px at 50% 50%, rgba(255, 70, 90, 0.50), rgba(0,0,0,0.16) 62%),
@@ -280,7 +294,6 @@ button{ font: inherit; }
   justify-content: center;
 }
 
-/* Score + history (centered) */
 .scoreWrap{
   margin-top: 14px;
   display: flex;
@@ -385,10 +398,6 @@ button{ font: inherit; }
 .inOk{ color: #67b3ff; font-weight: 900; }
 .inFailGroup{ color: #ff6b6b; font-weight: 1000; }
 
-/* =========================
-   Modal (EDIT KEY)
-   ========================= */
-
 .modal{ position: fixed; inset: 0; z-index: 9999; }
 .modalBackdrop{ position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
 
@@ -452,7 +461,7 @@ button{ font: inherit; }
 
 .kbdHint{ margin-top: 10px; color: rgba(255,255,255,0.60); font-size: 12px; }
 
-.kbdRow{ display:flex; gap: 10px; justify-content: flex-start; margin-bottom: 10px; }
+.kbdRow{ display:flex; gap: 10px; justify-content: flex-start; margin-bottom: 10px; flex-wrap: wrap; }
 .kbdRow:last-child{ margin-bottom: 0; }
 
 .kbdRow.offset1{ padding-left: 26px; }
@@ -485,7 +494,6 @@ button{ font: inherit; }
 .keycap.wide{ min-width: 88px; }
 .keycap.wider{ min-width: 110px; }
 .keycap.space{ min-width: 240px; }
-.keycap.backspace{ min-width: 150px; }
 
 .keycapLabel{ font-size: 12px; letter-spacing: 0.2px; }
 
