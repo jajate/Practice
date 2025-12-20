@@ -1,56 +1,14 @@
 (() => {
-  const isTouchLike =
-    (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) ||
-    (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+  // NOTE: beberapa laptop/PC (bahkan tanpa touchscreen) bisa melaporkan maxTouchPoints > 0.
+// Jadi: kita tampilkan warning untuk perangkat "mobile-like", tapi TIDAK mematikan game.
+const isMobileLike =
+  (window.matchMedia && window.matchMedia("(pointer: coarse) and (hover: none)").matches) ||
+  /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "") ||
+  window.innerWidth < 820;
 
-  const el = {
-    main: document.getElementById("main"),
-    board: document.getElementById("board"),
-    mobileBlock: document.getElementById("mobileBlock"),
-
-    timeText: document.getElementById("timeText"),
-    kpmText: document.getElementById("kpmText"),
-    failText: document.getElementById("failText"),
-    roundText: document.getElementById("roundText"),
-
-    avgKpm: document.getElementById("avgKpm"),
-    avgTime: document.getElementById("avgTime"),
-    avgFailRate: document.getElementById("avgFailRate"),
-    historyBody: document.getElementById("historyBody"),
-
-    btnMute: document.getElementById("btnMute"),
-    btnEditKey: document.getElementById("btnEditKey"),
-    modeBtns: Array.from(document.querySelectorAll(".modeBtn")),
-
-    boardMessage: document.getElementById("boardMessage"),
-    boardMessageTitle: document.getElementById("boardMessageTitle"),
-    boardMessageSub: document.getElementById("boardMessageSub"),
-    btnStart: document.getElementById("btnStart"),
-    btnPlayAgain: document.getElementById("btnPlayAgain"),
-
-    srLive: document.getElementById("srLive"),
-
-    keyModal: document.getElementById("keyModal"),
-    kbdRows: document.getElementById("kbdRows"),
-    tabBasic: document.getElementById("tabBasic"),
-    tabAddon: document.getElementById("tabAddon"),
-    btnKeyClose: document.getElementById("btnKeyClose"),
-    btnKeyReset: document.getElementById("btnKeyReset"),
-    btnKeyCancel: document.getElementById("btnKeyCancel"),
-    btnKeySave: document.getElementById("btnKeySave"),
-    keyModalError: document.getElementById("keyModalError"),
-    selBasic: document.getElementById("selBasic"),
-    selAddon: document.getElementById("selAddon"),
-    inpSeqLen: document.getElementById("inpSeqLen"),
-    inpBasicCount: document.getElementById("inpBasicCount"),
-    inpAddonCount: document.getElementById("inpAddonCount"),
-    btnDupToggle: document.getElementById("btnDupToggle"),
-  };
-
-  if (isTouchLike) {
-    el.mobileBlock.hidden = false;
-    return;
-  }
+if (isMobileLike) {
+  el.mobileBlock.hidden = false;
+}
 
   /** @typedef {{id:string,label:string,icon?:string,kind:'char'|'special', match:(e:KeyboardEvent)=>boolean, displayHtml:()=>string, displayText:()=>string}} KeyDef */
 
